@@ -1,0 +1,23 @@
+services:
+  aws-cloudops-mcp:
+    build: .
+    image: aws-cloudops-mcp:local
+    # MCP over stdio needs an interactive attached stdin/stdout, not a
+    # detached background service.
+    stdin_open: true
+    tty: true
+    environment:
+      APP_NAME: aws-cloudops-mcp
+      LOG_LEVEL: INFO
+      AWS_PROFILE: ${AWS_PROFILE:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_ROLE_ARN: ${AWS_ROLE_ARN:-}
+      AWS_EXTERNAL_ID: ${AWS_EXTERNAL_ID:-}
+      AWS_SESSION_NAME: ${AWS_SESSION_NAME:-aws-cloudops-mcp}
+    volumes:
+      # Local development convenience only: mount the host's AWS config
+      # read-only so AWS_PROFILE-based auth works inside the container. Do
+      # NOT do this in production -- prefer an attached IAM role or
+      # environment-variable credentials injected by your deployment
+      # platform's secret manager.
+      - ${HOME}/.aws:/home/aws-cloudops-mcp/.aws:ro
