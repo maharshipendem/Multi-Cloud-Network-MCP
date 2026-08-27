@@ -1,0 +1,31 @@
+{
+  "Name": "Azure Network MCP Reader",
+  "IsCustom": true,
+  "Description": "Least-privilege read-only role for azure-network-mcp: read access to subscriptions, resource groups, and network resources only. Narrower than the built-in Reader role, which grants read access to every resource type in a subscription.",
+  "Actions": [
+    "Microsoft.Resources/subscriptions/read",
+    "Microsoft.Resources/subscriptions/locations/read",
+    "Microsoft.Resources/subscriptions/resourceGroups/read",
+    "Microsoft.Resources/subscriptions/resourceGroups/resources/read",
+    "Microsoft.Network/virtualNetworks/read",
+    "Microsoft.Network/virtualNetworks/subnets/read",
+    "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read",
+    "Microsoft.Network/routeTables/read",
+    "Microsoft.Network/networkInterfaces/read",
+    "Microsoft.Network/networkInterfaces/effectiveRouteTable/action",
+    "Microsoft.Network/networkInterfaces/effectiveNetworkSecurityGroups/action",
+    "Microsoft.Network/networkSecurityGroups/read",
+    "Microsoft.Network/networkSecurityGroups/securityRules/read",
+    "Microsoft.Network/publicIPAddresses/read",
+    "Microsoft.Network/natGateways/read",
+    "Microsoft.Network/loadBalancers/read",
+    "Microsoft.Network/applicationGateways/read",
+    "Microsoft.Network/locations/*/read"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/providers/Microsoft.Management/managementGroups/REPLACE_WITH_MANAGEMENT_GROUP_ID"
+  ]
+}

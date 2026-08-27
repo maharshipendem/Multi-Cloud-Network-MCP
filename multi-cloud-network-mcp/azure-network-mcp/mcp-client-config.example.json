@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "azure-network-mcp": {
+      "command": "azure-network-mcp",
+      "args": [],
+      "env": {
+        "AZURE_TENANT_ID": "",
+        "AZURE_CLIENT_ID": "",
+        "AZURE_SUBSCRIPTION_ALLOWLIST": "",
+        "AZURE_DEFAULT_SUBSCRIPTION_ID": ""
+      }
+    }
+  }
+}
