@@ -173,3 +173,21 @@ def test_normalize_route_prefix_list_destination() -> None:
     assert route.destination_cidr_block is None
     assert route.target == "nat-0123456789abcdef0"
     assert route.target_type == "nat_gateway"
+
+
+def test_normalize_route_classifies_gateway_vpc_endpoint() -> None:
+    """AWS represents a Gateway-type VPC endpoint (S3/DynamoDB) route as a
+    GatewayId pointing at the endpoint (vpce-...) paired with a
+    DestinationPrefixListId -- a third reuse of GatewayId beyond "local"
+    and a virtual private gateway, verified directly against moto's
+    DescribeRouteTables output for a real Gateway endpoint."""
+    route = _normalize_route(
+        {
+            "DestinationPrefixListId": "pl-0123456789abcdef0",
+            "GatewayId": "vpce-0123456789abcdef0",
+            "Origin": "CreateRoute",
+            "State": "active",
+        }
+    )
+    assert route.target == "vpce-0123456789abcdef0"
+    assert route.target_type == "vpc_endpoint"

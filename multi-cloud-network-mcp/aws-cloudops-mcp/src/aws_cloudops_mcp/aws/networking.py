@@ -52,15 +52,18 @@ _ROUTE_TARGET_FIELDS: tuple[tuple[str, str], ...] = (
 
 
 def _classify_gateway_id(gateway_id: str) -> str:
-    """AWS's ``GatewayId`` route field holds an internet gateway ID
-    (``igw-...``), a virtual private gateway ID (``vgw-...``), or the
-    literal string ``"local"``. Only internet gateways have a collector
-    (and therefore a topology node) in this milestone; VPN/Direct Connect
-    hybrid connectivity is explicitly out of scope."""
+    """AWS's ``GatewayId`` route field is reused for four different things:
+    an internet gateway ID (``igw-...``), a virtual private gateway ID
+    (``vgw-...``), a Gateway-type VPC endpoint ID (``vpce-...`` -- AWS
+    represents an S3/DynamoDB Gateway endpoint route as a ``GatewayId``
+    pointing at the endpoint, paired with a ``DestinationPrefixListId``,
+    not a distinct route field), or the literal string ``"local"``."""
     if gateway_id == "local":
         return "local"
     if gateway_id.startswith("vgw-"):
         return "virtual_private_gateway"
+    if gateway_id.startswith("vpce-"):
+        return "vpc_endpoint"
     return "gateway"
 
 

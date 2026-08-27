@@ -19,8 +19,12 @@ from moto import mock_aws
 from aws_cloudops_mcp.auth.session import SessionManager
 from aws_cloudops_mcp.aws.client_factory import ClientFactory
 from aws_cloudops_mcp.aws.hybrid_topology import get_hybrid_topology
+from aws_cloudops_mcp.aws.network_health import get_network_health
+from aws_cloudops_mcp.aws.snapshot import collect_network_snapshot
 from aws_cloudops_mcp.aws.topology import get_vpc_topology
 from aws_cloudops_mcp.config import Settings
+from aws_cloudops_mcp.diagnostics.explain import explain_network_path
+from aws_cloudops_mcp.diagnostics.risks import find_network_risks
 from aws_cloudops_mcp.security.guardrails import BLOCKED_KEYWORDS, READ_ONLY_PREFIXES
 
 
@@ -177,6 +181,63 @@ def test_full_hybrid_topology_run_issues_only_read_only_operations(
     get_hybrid_topology(
         watched_client_factory, region="us-east-1", transit_gateway_id=tgw["TransitGatewayId"]
     )
+
+    assert observed_operations, "expected at least one AWS API call to have been observed"
+    _assert_all_read_only(observed_operations)
+
+
+@mock_aws
+def test_full_diagnostics_run_issues_only_read_only_operations(
+    client_factory: ClientFactory, observed_operations: list[str]
+) -> None:
+    """Same behavioral proof as the topology runs above, applied to
+    Milestone 4's diagnostic engine and aws_get_network_health -- a run
+    that spans EC2 (VPC/route table/SG/NACL/ENI/NAT/flow logs) and
+    exercises route resolution, security evaluation, risk scanning, and
+    the health report's degraded-state + flow-log-coverage checks."""
+    ec2 = boto3.client("ec2", region_name="us-east-1")
+
+    vpc = ec2.create_vpc(CidrBlock="10.0.0.0/16")["Vpc"]
+    subnet_a = ec2.create_subnet(VpcId=vpc["VpcId"], CidrBlock="10.0.1.0/24")["Subnet"]
+    subnet_b = ec2.create_subnet(VpcId=vpc["VpcId"], CidrBlock="10.0.2.0/24")["Subnet"]
+    rt = ec2.create_route_table(VpcId=vpc["VpcId"])["RouteTable"]
+    ec2.associate_route_table(RouteTableId=rt["RouteTableId"], SubnetId=subnet_a["SubnetId"])
+    ec2.associate_route_table(RouteTableId=rt["RouteTableId"], SubnetId=subnet_b["SubnetId"])
+    sg = ec2.create_security_group(GroupName="app-sg", Description="t", VpcId=vpc["VpcId"])[
+        "GroupId"
+    ]
+    ec2.authorize_security_group_ingress(
+        GroupId=sg,
+        IpPermissions=[
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 443,
+                "ToPort": 443,
+                "IpRanges": [{"CidrIp": "10.0.0.0/16"}],
+            }
+        ],
+    )
+    ec2.create_network_interface(SubnetId=subnet_a["SubnetId"], Groups=[sg])
+    nat = ec2.create_nat_gateway(SubnetId=subnet_b["SubnetId"], ConnectivityType="public")[
+        "NatGateway"
+    ]
+    ec2.delete_nat_gateway(NatGatewayId=nat["NatGatewayId"])
+
+    def record(operation_name: str, **_kwargs: object) -> None:
+        observed_operations.append(operation_name)
+
+    watched_session = boto3.Session(region_name="us-east-1")
+    watched_session.events.register("before-call.*.*", lambda model, **kw: record(model.name))
+
+    settings = Settings(aws_default_region="us-east-1")
+    manager = SessionManager(settings)
+    manager._base_session = watched_session
+    watched_client_factory = ClientFactory(settings, manager)
+
+    snapshot = collect_network_snapshot(watched_client_factory, region="us-east-1")
+    explain_network_path(snapshot, source_subnet_id=subnet_a["SubnetId"], destination="10.0.2.5")
+    find_network_risks(snapshot)
+    get_network_health(watched_client_factory, region="us-east-1")
 
     assert observed_operations, "expected at least one AWS API call to have been observed"
     _assert_all_read_only(observed_operations)

@@ -336,6 +336,193 @@ group rules, NACLs, or tunnel state to determine whether traffic can
 actually flow between two nodes. See
 [docs/security.md](security.md#no-reachability-claims).
 
+## Diagnostic engine (Milestone 4)
+
+Milestone 4 adds a sixth layer that sits beside, not inside, the five
+described at the top of this document:
+
+```
+AI / MCP Client
+       |
+       v
+AWS CloudOps MCP
+       |
+       +--- MCP Tool Layer
+       |
+       +--- Security Guardrails
+       |
+       +--- AWS Service Layer ------+
+       |                            |
+       +--- AWS Client Factory      +--> aws.snapshot.collect_network_snapshot()
+       |                            |          |
+       +--- Authentication          |          v
+       |                            |    diagnostics.snapshot.NetworkSnapshot
+       v                            |          |
+AWS APIs                            |          v
+                                     |    diagnostics.* (routing, security,
+                                     |    exposure, consistency, explain, risks)
+                                     |          |
+                                     +----------+
+                                     (offline: diagnostics.offline.load_snapshot()
+                                      substitutes for the AWS-calling half entirely)
+```
+
+**`aws_cloudops_mcp.diagnostics` imports neither boto3/botocore nor the
+MCP transport.** Every function under it takes a plain
+`diagnostics.snapshot.NetworkSnapshot` — a pydantic bundle of the same
+normalized models (`Vpc`, `Subnet`, `RouteTable`, `SecurityGroup`, ...)
+Milestones 1-3 already produce — and returns `diagnostics.models.Finding`
+objects, nothing else. This is what makes the engine:
+
+- **Deterministic and unit-testable without an LLM.** The same snapshot
+  always produces the same findings; `tests/unit/test_diagnostics_*.py`
+  golden-tests reasoning and evidence, not just final labels, per the
+  milestone's own requirement.
+- **Usable offline.** `diagnostics.offline.load_snapshot()` reads a saved
+  JSON file into the exact same `NetworkSnapshot` type
+  `aws.snapshot.collect_network_snapshot()` produces from live AWS calls
+  — the diagnostics functions cannot tell the difference, so there is no
+  separate "offline mode" code path to drift out of sync with the live
+  one. See `fixtures/demo_network_snapshot.json` for a sanitized,
+  hand-built snapshot exercising several rules at once.
+- **A single AWS-touching seam.** `aws/snapshot.py` is the only module
+  that bridges boto3 and the diagnostics package; it adds no new AWS API
+  calls beyond what `aws/networking.py`, `aws/gateways.py`, `aws/nat.py`,
+  `aws/security.py`, `aws/nacls.py`, `aws/enis.py`, `aws/peering.py`,
+  `aws/endpoints.py`, `aws/prefix_lists.py`, `aws/loadbalancers.py`,
+  `aws/transit_gateway.py`, and `aws/vpn.py` already provide — it only
+  orchestrates and bundles their existing output. Every VPC-scoped
+  resource type is fetched region-wide in one call sequence (not once per
+  VPC) and filtered client-side when `vpc_ids` narrows the scope, keeping
+  the AWS call count constant regardless of how many VPCs are analyzed.
+
+### Rule catalog and the `Finding` contract
+
+Every diagnostic conclusion — from a route-resolution hop to a CIDR-
+overlap scan — is a `diagnostics.models.Finding`: `rule_id`,
+`rule_version` (semantic version of the rule's *logic*, not its wording),
+`severity`, `confidence`, `summary`, `affected_resources`, `evidence`,
+`reasoning` (an ordered, replayable chain of steps), `assumptions`,
+`limitations`, `freshness` (the snapshot's `collected_at`), and
+`remediation` (always advisory text — nothing in this repository ever
+executes it). `diagnostics.models.register_rule()` is the single catalog
+choke point: every rule module registers its `RuleMetadata` once at
+import time, so `rule_catalog()` can never silently drift from what
+actually runs. Current catalog:
+
+| Rule ID | Module | Title |
+|---|---|---|
+| `ROUTE-001` | `diagnostics.routing` | Route resolution |
+| `SEC-001` | `diagnostics.security` | Security group evaluation |
+| `SEC-002` | `diagnostics.security` | Network ACL evaluation |
+| `EXPOSE-001` | `diagnostics.exposure` | ENI internet exposure |
+| `EXPOSE-002` | `diagnostics.exposure` | Load balancer internet exposure |
+| `CONSIST-001` | `diagnostics.consistency` | CIDR overlap |
+| `CONSIST-002` | `diagnostics.consistency` | Orphaned Transit Gateway attachment |
+| `CONSIST-003` | `diagnostics.consistency` | Missing Transit Gateway route propagation |
+| `CONSIST-004` | `diagnostics.consistency` | Asymmetric VPC peering route |
+| `CONSIST-005` | `diagnostics.consistency` | Degraded or failed resource state |
+
+**`confidence: "indeterminate"` is a first-class outcome, not an
+omission.** A rule that cannot reach a conclusion — a referenced security
+group missing from the snapshot, a peered VPC outside the collected
+scope, a route to a target type this engine doesn't resolve — says so
+explicitly, with `limitations` naming what was missing, rather than being
+silently dropped (which would be indistinguishable from "checked, found
+nothing"). This is the direct implementation of the milestone's
+guardrail: never claim certainty with incomplete data.
+
+### Route resolution (`diagnostics/routing.py`)
+
+`resolve_path()` performs the same longest-prefix-match algorithm AWS's
+own route selection uses, including AWS's static-over-propagated
+tie-break at equal prefix length, and walks through continuable hops
+(NAT gateway, VPC peering, Transit Gateway) by re-entering the same loop
+from the new location — a NAT hop simply switches `current_subnet_id` to
+the NAT gateway's own subnet and re-resolves against that subnet's route
+table, rather than needing special-cased multi-hop logic. Terminal hops
+(internet gateway, egress-only IGW, Gateway VPC endpoint, network
+interface/appliance) end the walk; a blackhole route or no matching route
+at all ends it as `blocked_at_routing`, deterministically and at high
+confidence, since both are directly-observed AWS states. A route whose
+target this engine cannot resolve further (a virtual private gateway,
+Direct Connect gateway route target, etc.) ends as `unresolved_target`,
+never silently treated as either reachable or blocked. A continuable hop
+whose destination (peer VPC, TGW-attached VPC) isn't included in the
+snapshot ends as `left_analyzed_scope` — genuinely unknown, not a
+negative result.
+
+### Security evaluation (`diagnostics/security.py`)
+
+The one distinction this module must never blur: **security groups are
+stateful, network ACLs are stateless.** `evaluate_security_groups()`
+checks only the initiating direction (egress at the source, ingress at
+the destination) since AWS itself permits the matching return traffic
+automatically once the initiating direction is allowed — a synthesized
+"return path" check for security groups would be actively wrong.
+`evaluate_network_acls()` does the opposite: it checks all four legs
+(source outbound, destination inbound, destination outbound-return,
+source inbound-return) because AWS evaluates NACL rules independently
+per packet in both directions, including the response. The
+return-leg checks use an assumed ephemeral port range
+(`EPHEMERAL_PORT_RANGE`, 1024-65535, the full IANA range) since the
+actual client-side range varies by OS — always disclosed on the
+resulting `Finding.assumptions`, never silently baked in. This asymmetry
+is exactly what produces the milestone's "NACL ephemeral-port failure"
+test scenario: a forward-direction rule that looks completely correct
+while a missing return-leg rule silently drops every response.
+
+### Exposure and consistency (`diagnostics/exposure.py`, `diagnostics/consistency.py`)
+
+`evaluate_eni_exposure()`/`evaluate_load_balancer_exposure()`
+deliberately keep **potential exposure** (a security group or NACL rule
+that *would* permit internet traffic) and **proven reachability** (that
+rule combined with an actual public IP and a route to an internet
+gateway) as two different severities, never collapsed into one verdict —
+the milestone's own guardrail against claiming reachability from
+topology alone. `diagnostics/consistency.py` holds every check that
+scans the whole snapshot rather than answering one source/destination
+question (CIDR overlap, orphaned/unpropagated Transit Gateway
+attachments, asymmetric VPC peering routes, degraded resource states);
+each returns zero or more findings, composed by `diagnostics/risks.py`
+into `aws_find_network_risks`'s output.
+
+### Composition: `explain.py` and `risks.py`
+
+`diagnostics/explain.py::explain_network_path()` is `aws_explain_network_path`'s
+orchestration: it always runs route resolution, then opportunistically
+runs security-group evaluation (if a source ENI is resolvable) and NACL
+evaluation (if the path stays within the analyzed VPC and concrete
+source/destination IPs plus a port are given) — each skipped sub-check
+is recorded as an explicit limitation on the result, never silently
+treated as "passed." `diagnostics/risks.py::find_network_risks()` runs
+every whole-snapshot consistency check plus an exposure check for every
+ENI and load balancer in the snapshot (including ones with nothing wrong
+— an `info`-severity finding, not an omission), then sorts the combined
+list deterministically by `(severity, rule_id, first_affected_resource)`
+so repeated calls against the same snapshot always return findings in
+the same order. `min_severity` lets a caller filter informational noise
+without the underlying function ever doing so silently.
+
+### `aws_get_network_health`
+
+`aws/network_health.py::get_network_health()` combines
+`diagnostics.consistency.check_degraded_resource_states()` (pure) with
+three opt-in, bounded AWS reads: CloudWatch metrics from a fixed,
+documented catalog (`aws/network_metrics.py::KNOWN_NETWORK_METRICS`) per
+resource type rather than open-ended metric discovery; existing
+Reachability Analyzer analyses (`aws/network_insights.py`, read-only —
+never starts a new analysis); and recent CloudTrail network-configuration
+events (`aws/cloudtrail.py`, capped to `MAX_LOOKBACK_DAYS` and
+`MAX_RESULTS_CAP`, queried by `EventSource=ec2.amazonaws.com` and
+filtered client-side to a fixed allowlist of network-relevant event
+names, since `LookupEvents` has no "event name in (...)" server-side
+filter). Flow Log coverage is checked by cross-referencing
+`aws_list_flow_logs` (Milestone 3, config/delivery metadata only) against
+the snapshot's VPCs — a VPC with no matching flow log is reported, never
+silently omitted. Nothing in this path enables a Flow Log, creates a
+Reachability Analyzer path/analysis, or retrieves log record contents.
+
 ## Multi-cloud compatibility
 
 This repository contains AWS-specific logic only. Its output models

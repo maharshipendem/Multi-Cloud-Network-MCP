@@ -36,7 +36,12 @@ operation name containing a mutating keyword (`create`, `delete`, `modify`,
 `reboot`, `terminate`, `put`, `authorize`, `revoke`, and others — see
 `READ_ONLY_PREFIXES` / `BLOCKED_KEYWORDS` in
 `src/aws_cloudops_mcp/security/guardrails.py`) or that doesn't start with
-`describe_`, `get_`, or `list_`.
+`describe_`, `get_`, `list_`, `search_` (added in Milestone 3 for
+`ec2:SearchTransitGatewayRoutes`), or `lookup_` (added in Milestone 4 for
+`cloudtrail:LookupEvents`) — each addition beyond the original three is a
+narrow, explicitly-reviewed exception for one genuinely read-only AWS
+action that doesn't follow the describe/get/list naming convention, not a
+loosening of the rule itself.
 
 **This is a defense-in-depth control, not the authoritative security
 boundary.** Keyword/prefix matching on an operation name is a useful
@@ -206,6 +211,30 @@ above, and with it two fields that must never reach an MCP client:
   `ACCESS_DENIED` `CollectionWarning` rather than failing the tool call
   outright, the same best-effort pattern Milestone 2 established for
   optional per-item enrichments.
+- **CloudTrail lookup** (used internally by `aws_get_network_health`'s
+  `include_recent_changes`): never returns the raw `CloudTrailEvent` JSON
+  blob CloudTrail includes per event (full request parameters, which can
+  be more detail than a bounded recent-activity check should surface) —
+  only summary fields (event ID/name/time/username/resource names).
+  Bounded to `MAX_LOOKBACK_DAYS` (7) regardless of what a caller requests
+  and `MAX_RESULTS_CAP` (50), since this is a bounded recent-activity
+  check, not a general-purpose audit log query.
+- **CloudWatch metrics** (used internally by `aws_get_network_health`'s
+  `include_metrics`): queries only a small, fixed catalog of known
+  network-relevant metrics per resource type
+  (`aws/network_metrics.py::KNOWN_NETWORK_METRICS`), not open-ended
+  metric discovery, and each query is bounded to `MAX_LOOKBACK_HOURS`
+  (24) and `MAX_DATAPOINTS` (288).
+- **Reachability Analyzer / Network Access Analyzer findings**
+  (`aws_get_network_insights_access_scope_analysis_findings`): a
+  finding's `finding_components` are a bounded summary (component
+  ID/ARN), not AWS's full per-component explanation payload, and findings
+  retrieval is capped by `max_results`. Nothing in this milestone creates
+  a path, analysis, scope, or scope analysis — `ec2:CreateNetworkInsightsPath`,
+  `StartNetworkInsightsAnalysis`, `CreateNetworkInsightsAccessScope`, and
+  `StartNetworkInsightsAccessScopeAnalysis` are all mutating operations,
+  explicitly out of scope; only the corresponding `Describe*`/`Get*` reads
+  of results an operator already produced are exposed.
 - **Cloud WAN core network policies** (`aws_list_core_networks` with
   `include_policy: true`): reuses Milestone 2's VPC-endpoint-policy size
   guard (`MAX_POLICY_DOCUMENT_CHARS`, `policy_document_truncated`) — a
@@ -237,6 +266,49 @@ would actually determine that. This mirrors AWS's own
 positioning: reachability analysis is a distinct capability from topology
 visibility, and this server does not claim to provide it.
 
+**Milestone 4's `aws_explain_network_path` is the deliberate, narrower
+exception to "topology alone."** It does not infer reachability from a
+graph — it actually evaluates route resolution, security group rules, and
+NACL rules together, and only claims `allowed`/`blocked` when it had
+enough evidence to evaluate every applicable layer. When a layer can't
+be evaluated (no source ENI resolvable for security groups; the path
+leaves the analyzed VPC before reaching a known destination subnet for
+NACLs), the result is `partially_evaluated`, with an explicit limitation
+naming what was skipped — never silently upgraded to `allowed`. See
+[Deterministic, evidence-bound diagnostics](#deterministic-evidence-bound-diagnostics)
+below for the full guarantee this rests on.
+
+## Deterministic, evidence-bound diagnostics
+
+Milestone 4's diagnostic engine (`aws_cloudops_mcp.diagnostics`) carries
+three guarantees beyond "read-only," each directly answering a guardrail
+in the milestone's own spec:
+
+- **Never claims certainty with incomplete data.** Every diagnostic
+  conclusion is a `Finding` with an explicit `confidence` field, and
+  `"indeterminate"` is a first-class value, not an error state or a
+  silently-dropped result. A rule that cannot conclusively evaluate
+  something it needs (a security group missing from the collected
+  snapshot, a peered VPC outside its scope, a route target this engine
+  doesn't resolve) says so via `confidence: "indeterminate"` plus
+  `limitations` naming exactly what was missing. The alternative —
+  omitting the finding — would look identical to "checked, found
+  nothing," which is the one thing this guardrail exists to prevent.
+- **The core result is always deterministic Python logic, never an LLM
+  judgment call.** Every function under `diagnostics.*` is a pure
+  function of its `NetworkSnapshot` input: longest-prefix-match route
+  resolution, security group/NACL rule matching, CIDR overlap detection,
+  and every other check is ordinary, golden-testable code with no model
+  call anywhere in the decision path. An AI client consuming a `Finding`
+  may summarize or explain it in natural language, but the `severity`,
+  `confidence`, and `summary` it's explaining were decided before that
+  client ever saw the data.
+- **`remediation` is advisory text only, never executed.** No code path
+  anywhere in this repository takes a `Finding.remediation` string and
+  acts on it — there is no "apply this fix" tool, and Milestone 4 adds
+  none. A client presenting a finding to a user must not describe a
+  remediation suggestion as something that has been done.
+
 ## Error handling
 
 AWS/botocore errors are translated into a stable, client-safe error type
@@ -249,6 +321,7 @@ before being returned over MCP (see `tools/_shared.py`):
 | Guardrail rejected the operation before it reached AWS | `GUARDRAIL_VIOLATION` |
 | Malformed / unreachable region | `INVALID_REGION` |
 | Any other AWS API error | `AWS_SERVICE_ERROR` |
+| Invalid tool input (e.g. `aws_find_network_risks`'s `min_severity` not one of the valid values) | `TOOL_EXECUTION_ERROR` |
 | Unexpected internal error | `INTERNAL_ERROR` |
 
 The client-facing `message` is a short, generic description — never a raw

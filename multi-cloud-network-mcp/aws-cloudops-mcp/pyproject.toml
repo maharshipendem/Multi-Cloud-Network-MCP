@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aws-cloudops-mcp"
-version = "0.3.0"
+version = "0.4.0"
 description = "Production-quality, read-only Model Context Protocol (MCP) server for AWS cloud and network operations."
 readme = "README.md"
 requires-python = ">=3.12"
