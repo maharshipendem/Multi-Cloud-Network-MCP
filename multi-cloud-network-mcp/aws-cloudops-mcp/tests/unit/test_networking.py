@@ -48,14 +48,35 @@ def ec2_resources(client_factory: ClientFactory) -> dict[str, str]:
 def test_list_vpcs_returns_normalized_vpc(
     client_factory: ClientFactory, ec2_resources: dict[str, str]
 ) -> None:
-    vpcs = list_vpcs(client_factory, region="us-east-1")
-    match = next(v for v in vpcs if v.vpc_id == ec2_resources["vpc_id"])
+    result = list_vpcs(client_factory, region="us-east-1")
+    match = next(v for v in result.data if v.vpc_id == ec2_resources["vpc_id"])
 
     assert match.cidr_block == "10.42.0.0/16"
     assert match.state == "available"
     assert match.tags == {"Name": "test-vpc"}
     assert match.region == "us-east-1"
+    assert match.account_id == "123456789012"
+    assert match.observed_at
     assert isinstance(match.is_default, bool)
+    assert result.warnings == []
+
+
+def test_list_vpcs_include_dns_attributes(
+    client_factory: ClientFactory, ec2_resources: dict[str, str]
+) -> None:
+    result = list_vpcs(client_factory, region="us-east-1", include_dns_attributes=True)
+    match = next(v for v in result.data if v.vpc_id == ec2_resources["vpc_id"])
+
+    assert match.enable_dns_support is not None
+    assert match.enable_dns_hostnames is not None
+    assert result.warnings == []
+
+
+def test_list_vpcs_filters_by_vpc_ids(
+    client_factory: ClientFactory, ec2_resources: dict[str, str]
+) -> None:
+    result = list_vpcs(client_factory, region="us-east-1", vpc_ids=[ec2_resources["vpc_id"]])
+    assert [v.vpc_id for v in result.data] == [ec2_resources["vpc_id"]]
 
 
 @mock_aws
@@ -97,4 +118,7 @@ def test_list_route_tables_normalizes_routes_and_associations(
     assert len(igw_routes) == 1
     assert igw_routes[0].destination_cidr_block == "0.0.0.0/0"
     assert igw_routes[0].target_type == "gateway"
+    assert igw_routes[0].is_propagated is False
     assert match.vpc_id == ec2_resources["vpc_id"]
+    assert match.account_id == "123456789012"
+    assert match.observed_at

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from aws_cloudops_mcp.aws.accounts import get_caller_identity
 from aws_cloudops_mcp.tools._shared import execute_tool
+from aws_cloudops_mcp.tools.capabilities import capability_meta
 
 if TYPE_CHECKING:
     from mcp.server.mcpserver import MCPServer
@@ -22,6 +23,7 @@ def register(mcp: MCPServer, client_factory: ClientFactory) -> None:
             "Return the AWS identity currently used by the MCP server "
             "(sts:GetCallerIdentity): account_id, arn, and user_id."
         ),
+        meta=capability_meta(resource_types=["caller_identity"]),
     )
     def aws_get_caller_identity() -> dict[str, Any]:
         return execute_tool(

@@ -4,6 +4,12 @@ These models are the contract between the AWS service layer and the tool
 layer, and (once serialized) the contract handed back to MCP clients. They
 are intentionally cloud-agnostic in shape so a future multi-cloud
 orchestration layer can consume AWS, Azure, and GCP MCP output consistently.
+
+Milestone 2 note: every resource record (anything below that inherits
+``AwsResource``) carries ``account_id``, ``region``, ``tags``, and
+``observed_at`` -- these are additive fields with no removed/renamed
+predecessors, so existing Milestone 1 consumers reading known fields by name
+are unaffected. See CHANGELOG.md for the full migration note.
 """
 
 from __future__ import annotations
@@ -29,40 +35,118 @@ class RegionInfo(BaseModel):
     opt_in_status: str | None = None
 
 
-class Vpc(BaseModel):
-    """Normalized entry from ec2:DescribeVpcs."""
+class CollectionWarning(BaseModel):
+    """A non-fatal issue encountered while collecting one resource type.
+
+    Used whenever a tool returns a *partial* result rather than failing
+    outright -- e.g. missing permission for one optional resource, or a
+    bounded fan-out cap being reached. A missing permission must never be
+    silently treated as "this resource type has zero instances"; it must
+    surface here instead.
+    """
+
+    resource_type: str
+    code: str
+    message: str
+
+
+class AwsResource(BaseModel):
+    """Fields every normalized AWS resource record carries.
+
+    ``observed_at`` is the collection timestamp (ISO 8601, UTC) for the API
+    call(s) that produced this record, not a live/real-time value -- it lets
+    a caller (or a later diffing/troubleshooting tool) reason about how
+    stale a given record is.
+    """
+
+    account_id: str
+    region: str
+    observed_at: str
+    tags: Tags = Field(default_factory=dict)
+
+
+class VpcCidrBlockAssociation(BaseModel):
+    """A single (primary or secondary) IPv4 CIDR association on a VPC."""
+
+    association_id: str | None = None
+    cidr_block: str
+    state: str | None = None
+
+
+class VpcIpv6CidrBlockAssociation(BaseModel):
+    """A single IPv6 CIDR association on a VPC."""
+
+    association_id: str | None = None
+    ipv6_cidr_block: str
+    state: str | None = None
+    ipv6_pool: str | None = None
+    network_border_group: str | None = None
+
+
+class Vpc(AwsResource):
+    """Normalized entry from ec2:DescribeVpcs.
+
+    ``enable_dns_support``/``enable_dns_hostnames`` are ``None`` unless a
+    caller opted into DNS-attribute enrichment (``include_dns_attributes``
+    on ``aws_list_vpcs``) -- AWS does not include them in DescribeVpcs and
+    fetching them requires two extra API calls per VPC, so they are
+    opt-in/bounded rather than always fetched. See
+    ``aws.networking.list_vpcs``.
+    """
 
     vpc_id: str
     cidr_block: str
+    cidr_block_associations: list[VpcCidrBlockAssociation] = Field(default_factory=list)
+    ipv6_cidr_block_associations: list[VpcIpv6CidrBlockAssociation] = Field(default_factory=list)
     state: str
     is_default: bool
+    instance_tenancy: str | None = None
     dhcp_options_id: str | None = None
-    tags: Tags = Field(default_factory=dict)
-    region: str
+    enable_dns_support: bool | None = None
+    enable_dns_hostnames: bool | None = None
 
 
-class Subnet(BaseModel):
+class SubnetIpv6CidrBlockAssociation(BaseModel):
+    """A single IPv6 CIDR association on a subnet."""
+
+    association_id: str | None = None
+    ipv6_cidr_block: str
+    state: str | None = None
+
+
+class Subnet(AwsResource):
     """Normalized entry from ec2:DescribeSubnets."""
 
     subnet_id: str
     vpc_id: str
     cidr_block: str
+    ipv6_cidr_block_associations: list[SubnetIpv6CidrBlockAssociation] = Field(default_factory=list)
     availability_zone: str
+    availability_zone_id: str | None = None
     available_ip_address_count: int
     map_public_ip_on_launch: bool
-    tags: Tags = Field(default_factory=dict)
-    region: str
+    assign_ipv6_address_on_creation: bool | None = None
+    default_for_az: bool | None = None
+    state: str | None = None
 
 
 class Route(BaseModel):
-    """A single normalized route within a route table."""
+    """A single normalized route within a route table.
+
+    ``is_propagated`` is derived from AWS's ``Origin`` field
+    (``EnableVgwRoutePropagation``) -- AWS does not expose a separate
+    boolean, so this is the explicit/propagated distinction the tool
+    contract asks for.
+    """
 
     destination_cidr_block: str | None = None
+    destination_ipv6_cidr_block: str | None = None
     destination_prefix_list_id: str | None = None
     target: str | None = None
     target_type: str | None = None
     state: str | None = None
     origin: str | None = None
+    is_propagated: bool = False
 
 
 class RouteTableAssociation(BaseModel):
@@ -72,14 +156,14 @@ class RouteTableAssociation(BaseModel):
     subnet_id: str | None = None
     gateway_id: str | None = None
     main: bool = False
+    association_state: str | None = None
 
 
-class RouteTable(BaseModel):
+class RouteTable(AwsResource):
     """Normalized entry from ec2:DescribeRouteTables."""
 
     route_table_id: str
     vpc_id: str
     routes: list[Route] = Field(default_factory=list)
     associations: list[RouteTableAssociation] = Field(default_factory=list)
-    tags: Tags = Field(default_factory=dict)
-    region: str
+    propagating_vgws: list[str] = Field(default_factory=list)

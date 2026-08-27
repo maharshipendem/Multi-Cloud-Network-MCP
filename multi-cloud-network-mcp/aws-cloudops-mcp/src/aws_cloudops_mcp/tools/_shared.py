@@ -20,6 +20,7 @@ from botocore.exceptions import (
     NoRegionError,
 )
 
+from aws_cloudops_mcp.aws.collection import CollectionResult
 from aws_cloudops_mcp.exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -111,10 +112,17 @@ def execute_tool(
                 "Could not connect to the AWS endpoint for the specified region."
             ) from exc
 
+        warnings: list[Any] = []
+        if isinstance(data, CollectionResult):
+            warnings = data.warnings
+            data = data.data
+
         payload = _to_jsonable(data)
         metadata: dict[str, Any] = {"request_id": request_id}
         if isinstance(payload, list):
             metadata["count"] = len(payload)
+        if warnings:
+            metadata["warnings"] = [_to_jsonable(w) for w in warnings]
 
         return ToolResponse.ok(
             tool=tool_name,

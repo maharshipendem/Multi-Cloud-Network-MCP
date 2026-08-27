@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     # Safety limit on paginated AWS API results returned by a single tool call
     max_page_results: int = 1000
 
+    # Safety limit on the number of *extra, per-item* AWS API calls a single
+    # tool invocation may make for optional enrichment or joins that AWS does
+    # not expose as a single batch call (e.g. per-VPC DNS attributes, per-
+    # target-group target health, per-prefix-list entries, topology
+    # assembly). Items beyond this cap are skipped with a recorded warning
+    # rather than silently omitted.
+    max_fanout_calls: int = 50
+
 
 @lru_cache
 def get_settings() -> Settings:

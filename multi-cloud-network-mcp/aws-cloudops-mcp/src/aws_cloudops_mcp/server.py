@@ -14,7 +14,21 @@ from aws_cloudops_mcp.auth.session import SessionManager
 from aws_cloudops_mcp.aws.client_factory import ClientFactory
 from aws_cloudops_mcp.config import Settings, get_settings
 from aws_cloudops_mcp.logging.setup import configure_logging, get_logger
-from aws_cloudops_mcp.tools import identity, inventory, regions
+from aws_cloudops_mcp.tools import (
+    endpoints,
+    enis,
+    gateways,
+    identity,
+    inventory,
+    loadbalancers,
+    nacls,
+    nat,
+    peering,
+    prefix_lists,
+    regions,
+    security,
+    topology,
+)
 
 _logger = get_logger(__name__)
 
@@ -32,6 +46,16 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     identity.register(mcp, client_factory)
     regions.register(mcp, client_factory)
     inventory.register(mcp, client_factory)
+    gateways.register(mcp, client_factory)
+    nat.register(mcp, client_factory)
+    security.register(mcp, client_factory)
+    nacls.register(mcp, client_factory)
+    enis.register(mcp, client_factory)
+    peering.register(mcp, client_factory)
+    prefix_lists.register(mcp, client_factory)
+    endpoints.register(mcp, client_factory)
+    loadbalancers.register(mcp, client_factory)
+    topology.register(mcp, client_factory)
 
     _logger.info(
         "server initialized",
