@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
+from aws_cloudops_mcp.aws.collection import record_call
 from aws_cloudops_mcp.security.guardrails import assert_read_only_operation
 
 
@@ -20,4 +21,5 @@ def call_readonly(client: _BotoClient, operation_name: str, **kwargs: Any) -> An
     """Invoke ``client.<operation_name>(**kwargs)`` after a guardrail check."""
     assert_read_only_operation(operation_name)
     method = getattr(client, operation_name)
+    record_call()
     return method(**kwargs)

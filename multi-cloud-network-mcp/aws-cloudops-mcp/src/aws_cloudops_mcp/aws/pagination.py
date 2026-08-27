@@ -13,6 +13,7 @@ from typing import Any
 
 from botocore.exceptions import OperationNotPageableError
 
+from aws_cloudops_mcp.aws.collection import record_call
 from aws_cloudops_mcp.aws.readonly import call_readonly
 from aws_cloudops_mcp.security.guardrails import assert_read_only_operation
 
@@ -39,6 +40,7 @@ def paginate(
     items: list[dict[str, Any]] = []
     pagination_config = {"MaxItems": max_items}
     for page in paginator.paginate(PaginationConfig=pagination_config, **kwargs):
+        record_call()  # each page is one real AWS API request
         items.extend(page.get(result_key, []))
         if len(items) >= max_items:
             break

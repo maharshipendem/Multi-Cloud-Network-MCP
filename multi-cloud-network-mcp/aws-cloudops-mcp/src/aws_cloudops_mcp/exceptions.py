@@ -60,3 +60,11 @@ class GuardrailViolationError(AuthorizationError):
     """Raised when an operation is rejected by the read-only security guardrails."""
 
     error_type = "GUARDRAIL_VIOLATION"
+
+
+class ResourceNotFoundError(AWSCloudOpsMCPError):
+    """Raised when a tool is asked to operate on a specific resource that
+    does not exist in the configured account/region (e.g. an unknown VPC ID
+    passed to ``aws_get_vpc_topology``)."""
+
+    error_type = "RESOURCE_NOT_FOUND"

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from aws_cloudops_mcp.aws.regions import list_regions
 from aws_cloudops_mcp.tools._shared import execute_tool
+from aws_cloudops_mcp.tools.capabilities import capability_meta
 
 if TYPE_CHECKING:
     from mcp.server.mcpserver import MCPServer
@@ -19,6 +20,7 @@ def register(mcp: MCPServer, client_factory: ClientFactory) -> None:
     @mcp.tool(
         name=TOOL_NAME,
         description="Return AWS regions accessible through EC2 DescribeRegions.",
+        meta=capability_meta(resource_types=["region"]),
     )
     def aws_list_regions(region: str | None = None) -> dict[str, Any]:
         """List AWS regions.
