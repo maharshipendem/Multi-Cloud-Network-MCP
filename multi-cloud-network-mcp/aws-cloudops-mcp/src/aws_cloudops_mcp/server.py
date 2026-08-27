@@ -15,19 +15,26 @@ from aws_cloudops_mcp.aws.client_factory import ClientFactory
 from aws_cloudops_mcp.config import Settings, get_settings
 from aws_cloudops_mcp.logging.setup import configure_logging, get_logger
 from aws_cloudops_mcp.tools import (
+    directconnect,
+    dns,
     endpoints,
     enis,
+    flowlogs,
     gateways,
+    hybrid_topology,
     identity,
     inventory,
     loadbalancers,
     nacls,
     nat,
+    networkmanager,
     peering,
     prefix_lists,
     regions,
     security,
     topology,
+    transit_gateway,
+    vpn,
 )
 
 _logger = get_logger(__name__)
@@ -56,6 +63,13 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     endpoints.register(mcp, client_factory)
     loadbalancers.register(mcp, client_factory)
     topology.register(mcp, client_factory)
+    transit_gateway.register(mcp, client_factory)
+    vpn.register(mcp, client_factory)
+    directconnect.register(mcp, client_factory)
+    dns.register(mcp, client_factory)
+    networkmanager.register(mcp, client_factory)
+    flowlogs.register(mcp, client_factory)
+    hybrid_topology.register(mcp, client_factory)
 
     _logger.info(
         "server initialized",

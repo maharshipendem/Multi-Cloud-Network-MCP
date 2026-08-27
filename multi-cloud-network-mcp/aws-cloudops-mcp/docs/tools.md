@@ -868,11 +868,1761 @@ references are never silently dropped; they always pair with a
 
 ---
 
+## `aws_list_transit_gateways`
+
+**Purpose:** List Transit Gateways in a region.
+
+**AWS API:** `ec2:describe_transit_gateways` (paginated)
+
+**Required IAM permission:** `ec2:DescribeTransitGateways`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`transit_gateway_ids` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "transit_gateway_id": "tgw-0123456789abcdef0",
+  "transit_gateway_arn": "arn:aws:ec2:us-east-1:123456789012:transit-gateway/tgw-0123456789abcdef0",
+  "owner_id": "123456789012",
+  "description": "prod-hub",
+  "state": "available",
+  "options": {
+    "amazon_side_asn": 64512,
+    "auto_accept_shared_attachments": "disable",
+    "default_route_table_association": "enable",
+    "default_route_table_propagation": "enable",
+    "dns_support": "enable",
+    "vpn_ecmp_support": "enable",
+    "multicast_support": "disable",
+    "cidr_blocks": []
+  },
+  "tags": { "Name": "prod-hub" },
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeTransitGateways",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_transit_gateways", "input": { "region": "us-east-1" } }
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "tool": "aws_list_transit_gateways",
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "data": [
+    {
+      "transit_gateway_id": "tgw-0123456789abcdef0",
+      "transit_gateway_arn": "arn:aws:ec2:us-east-1:123456789012:transit-gateway/tgw-0123456789abcdef0",
+      "owner_id": "123456789012",
+      "description": "prod-hub",
+      "state": "available",
+      "options": {
+        "amazon_side_asn": 64512,
+        "auto_accept_shared_attachments": "disable",
+        "default_route_table_association": "enable",
+        "default_route_table_propagation": "enable",
+        "dns_support": "enable",
+        "vpn_ecmp_support": "enable",
+        "multicast_support": "disable",
+        "cidr_blocks": []
+      },
+      "tags": { "Name": "prod-hub" },
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T18:00:00+00:00",
+      "scope": "regional",
+      "source_api": "ec2:DescribeTransitGateways",
+      "collection_completeness": "complete",
+      "redacted": false
+    }
+  ],
+  "metadata": { "count": 1, "request_id": "..." },
+  "error": null
+}
+```
+
+---
+
+## `aws_list_transit_gateway_attachments`
+
+**Purpose:** List Transit Gateway attachments (VPC/VPN/Direct Connect
+gateway/peering/Connect), optionally filtered by Transit Gateway or
+resource type. Includes attachments owned by another account when visible
+through this account's side of the Transit Gateway -- `resource_owner_id`
+differing from the caller's own account ID signals a cross-account
+attachment.
+
+**AWS API:** `ec2:describe_transit_gateway_attachments` (paginated)
+
+**Required IAM permission:** `ec2:DescribeTransitGatewayAttachments`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0", "resource_type": "vpc" }
+```
+
+`transit_gateway_id` and `resource_type` (one of `vpc`, `vpn`,
+`direct-connect-gateway`, `peering`, `connect`, `tgw-peering`) are both
+optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "transit_gateway_attachment_id": "tgw-attach-0123456789abcdef0",
+  "transit_gateway_id": "tgw-0123456789abcdef0",
+  "transit_gateway_owner_id": "123456789012",
+  "resource_owner_id": "123456789012",
+  "resource_type": "vpc",
+  "resource_id": "vpc-0123456789abcdef0",
+  "state": "available",
+  "association": { "transit_gateway_route_table_id": "tgw-rtb-0123456789abcdef0", "state": "associated" },
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeTransitGatewayAttachments",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_transit_gateway_attachments", "input": { "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_transit_gateway_route_tables`
+
+**Purpose:** List Transit Gateway route tables, optionally with each
+table's attachment associations and/or propagations included.
+
+**AWS API:** `ec2:describe_transit_gateway_route_tables` (paginated) +
+`ec2:get_transit_gateway_route_table_associations` /
+`ec2:get_transit_gateway_route_table_propagations` (opt-in, one call each
+per route table, sharing one fan-out budget, bounded by
+`max_fanout_calls`)
+
+**Required IAM permission:** `ec2:DescribeTransitGatewayRouteTables`,
+`ec2:GetTransitGatewayRouteTableAssociations`,
+`ec2:GetTransitGatewayRouteTablePropagations`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0", "include_associations": true, "include_propagations": false }
+```
+
+`transit_gateway_id` and `transit_gateway_route_table_ids` are both
+optional (`transit_gateway_id` takes precedence if both are given).
+`include_associations`/`include_propagations` default to `false`.
+
+**Output (`data`):** list of
+
+```json
+{
+  "transit_gateway_route_table_id": "tgw-rtb-0123456789abcdef0",
+  "transit_gateway_id": "tgw-0123456789abcdef0",
+  "state": "available",
+  "default_association_route_table": true,
+  "default_propagation_route_table": true,
+  "associations": [
+    { "transit_gateway_attachment_id": "tgw-attach-0123456789abcdef0", "resource_id": "vpc-0123456789abcdef0", "resource_type": "vpc", "state": "associated" }
+  ],
+  "propagations": null,
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeTransitGatewayRouteTables",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`associations`/`propagations` stay `null` unless the corresponding
+`include_*` flag was passed. If the shared fan-out budget is exhausted
+before every route table is enriched, the remaining route tables keep
+`associations`/`propagations` as `null` and a `FANOUT_CAP_REACHED`
+warning appears in `metadata.warnings` for each one skipped.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_transit_gateway_route_tables", "input": { "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0", "include_associations": true } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_search_transit_gateway_routes`
+
+**Purpose:** Search one Transit Gateway route table's routes by exact-match
+destination CIDR and/or route type (static/propagated).
+
+**AWS API:** `ec2:search_transit_gateway_routes`
+
+**Required IAM permission:** `ec2:SearchTransitGatewayRoutes`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "transit_gateway_route_table_id": "tgw-rtb-0123456789abcdef0", "destination_cidr_block": "10.1.0.0/16", "route_search_type": null, "max_results": 100 }
+```
+
+`destination_cidr_block` and `route_search_type` (`"static"` or
+`"propagated"`) are both optional; if neither is given, the underlying AWS
+call is filtered to `type in (static, propagated)` so it still returns
+every real route rather than requiring the caller to supply a filter. AWS
+itself constrains `MaxResults` to `[5, 1000]` on the wire; `max_results`
+is clamped into that range for the actual AWS call, but the tool still
+slices its response down to (and never exceeds) whatever smaller
+`max_results` the caller asked for -- so passing `max_results: 1` returns
+at most one route even though AWS was asked for 5.
+
+**Output (`data`):** list of
+
+```json
+{
+  "destination_cidr_block": "10.1.0.0/16",
+  "route_type": "propagated",
+  "state": "active",
+  "attachments": [
+    { "transit_gateway_attachment_id": "tgw-attach-0123456789abcdef0", "resource_id": "vpc-0123456789abcdef0", "resource_type": "vpc" }
+  ]
+}
+```
+
+Note these records do not carry `account_id`/`region`/`tags`/`observed_at`
+-- unlike most list tools in this file, `TransitGatewayRoute` is a plain
+route record (like the nested `routes` entries under
+`aws_list_route_tables`), not a top-level `AwsResource`.
+
+**Example request:**
+
+```json
+{ "tool": "aws_search_transit_gateway_routes", "input": { "region": "us-east-1", "transit_gateway_route_table_id": "tgw-rtb-0123456789abcdef0", "destination_cidr_block": "10.1.0.0/16" } }
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "tool": "aws_search_transit_gateway_routes",
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "data": [
+    {
+      "destination_cidr_block": "10.1.0.0/16",
+      "route_type": "propagated",
+      "state": "active",
+      "attachments": [
+        { "transit_gateway_attachment_id": "tgw-attach-0123456789abcdef0", "resource_id": "vpc-0123456789abcdef0", "resource_type": "vpc" }
+      ]
+    }
+  ],
+  "metadata": { "count": 1, "request_id": "..." },
+  "error": null
+}
+```
+
+---
+
+## `aws_list_vpn_connections`
+
+**Purpose:** List Site-to-Site VPN connections, including per-tunnel
+telemetry and static routes.
+
+**Security note:** this tool never returns the IKE pre-shared key. AWS's
+raw `DescribeVpnConnections` response embeds the pre-shared key (and
+other vendor-specific detail) inside a `CustomerGatewayConfiguration`
+XML/JSON blob; that field is never read from the AWS response by this
+codebase -- there is no code path by which it could reach a normalized
+record, let alone this tool's output. `redacted` is always `true` on
+every record this tool returns, documenting that omission explicitly
+rather than leaving a client to assume the record is a complete
+passthrough of the AWS response. See
+[docs/security.md](security.md#secrets).
+
+**AWS API:** `ec2:describe_vpn_connections` (not paginated by AWS --
+returns everything in one call)
+
+**Required IAM permission:** `ec2:DescribeVpnConnections`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0" }
+```
+
+`vpn_connection_ids` and `transit_gateway_id` are both optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "vpn_connection_id": "vpn-0123456789abcdef0",
+  "state": "available",
+  "vpn_type": "ipsec.1",
+  "category": "VPN",
+  "customer_gateway_id": "cgw-0123456789abcdef0",
+  "vpn_gateway_id": null,
+  "transit_gateway_id": "tgw-0123456789abcdef0",
+  "gateway_association_state": "associated",
+  "options": {
+    "static_routes_only": false,
+    "tunnel_inside_ip_version": "ipv4",
+    "enable_acceleration": false,
+    "local_ipv4_network_cidr": "0.0.0.0/0",
+    "remote_ipv4_network_cidr": "0.0.0.0/0"
+  },
+  "static_routes": [],
+  "tunnels": [
+    {
+      "outside_ip_address": "203.0.113.10",
+      "status": "UP",
+      "status_message": "",
+      "last_status_change": "2026-08-20T10:00:00+00:00",
+      "accepted_route_count": 2,
+      "options": { "tunnel_inside_cidr": "169.254.10.0/30", "dpd_timeout_seconds": 30, "ike_versions": ["ikev2"] }
+    }
+  ],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeVpnConnections",
+  "collection_completeness": "complete",
+  "redacted": true
+}
+```
+
+Note there is no `customer_gateway_configuration` field, no
+`pre_shared_key` field, and no field anywhere in this model that could
+carry either -- this is an intentional, permanent omission (see
+[docs/security.md](security.md#secrets)), not something a future
+`include_*` flag will ever add.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_vpn_connections", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_customer_gateways`
+
+**Purpose:** List customer gateways -- the on-premises side of a
+Site-to-Site VPN.
+
+**AWS API:** `ec2:describe_customer_gateways`
+
+**Required IAM permission:** `ec2:DescribeCustomerGateways`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`customer_gateway_ids` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "customer_gateway_id": "cgw-0123456789abcdef0",
+  "state": "available",
+  "gateway_type": "ipsec.1",
+  "ip_address": "203.0.113.99",
+  "bgp_asn": "65000",
+  "device_name": "branch-office-router",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeCustomerGateways",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_customer_gateways", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_vpn_gateways`
+
+**Purpose:** List virtual private gateways -- the AWS side of a classic
+Site-to-Site VPN, distinct from a Transit Gateway.
+
+**AWS API:** `ec2:describe_vpn_gateways`
+
+**Required IAM permission:** `ec2:DescribeVpnGateways`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`vpn_gateway_ids` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "vpn_gateway_id": "vgw-0123456789abcdef0",
+  "state": "available",
+  "gateway_type": "ipsec.1",
+  "amazon_side_asn": 64512,
+  "vpc_attachments": [{ "vpc_id": "vpc-0123456789abcdef0", "state": "attached" }],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeVpnGateways",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_vpn_gateways", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_direct_connect_connections`
+
+**Purpose:** List Direct Connect connections, including hosted
+connections visible to this identity (a hosted connection's owner sees it
+via the same API, distinguished by `partner_name`/`lag_id`).
+
+**AWS API:** `directconnect:describe_connections`
+
+**Required IAM permission:** `directconnect:DescribeConnections`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`connection_id` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "connection_id": "dxcon-0123456789abcdef0",
+  "connection_name": "primary-dx",
+  "connection_state": "available",
+  "location": "EqDC2",
+  "bandwidth": "10Gbps",
+  "vlan": 100,
+  "partner_name": null,
+  "lag_id": null,
+  "aws_device": "EqDC2-1-2-3456-1",
+  "has_logical_redundancy": "yes",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "directconnect:DescribeConnections",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_direct_connect_connections", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_direct_connect_lags`
+
+**Purpose:** List Direct Connect Link Aggregation Groups.
+
+**AWS API:** `directconnect:describe_lags`
+
+**Required IAM permission:** `directconnect:DescribeLags`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`lag_id` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "lag_id": "dxlag-0123456789abcdef0",
+  "lag_name": "prod-lag",
+  "lag_state": "available",
+  "location": "EqDC2",
+  "number_of_connections": 2,
+  "minimum_links": 1,
+  "connections_bandwidth": "10Gbps",
+  "has_logical_redundancy": "yes",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "directconnect:DescribeLags",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_direct_connect_lags", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_direct_connect_virtual_interfaces`
+
+**Purpose:** List Direct Connect virtual interfaces (private/public),
+including BGP peer operational status.
+
+**Security note:** this tool never returns the BGP MD5 authentication
+key. AWS's raw `DescribeVirtualInterfaces` response can carry an
+`authKey` field at both the virtual interface level and per-BGP-peer, and
+a `customerRouterConfig` field (a generated router config snippet that
+can embed the same key) -- neither is ever read from the AWS response by
+this codebase, and `VirtualInterfaceBgpPeer` has no field that could hold
+one. See [docs/security.md](security.md#secrets).
+
+**AWS API:** `directconnect:describe_virtual_interfaces`
+
+**Required IAM permission:** `directconnect:DescribeVirtualInterfaces`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "connection_id": "dxcon-0123456789abcdef0" }
+```
+
+`connection_id` and `virtual_interface_id` are both optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "virtual_interface_id": "dxvif-0123456789abcdef0",
+  "virtual_interface_name": "prod-private-vif",
+  "virtual_interface_type": "private",
+  "virtual_interface_state": "available",
+  "connection_id": "dxcon-0123456789abcdef0",
+  "direct_connect_gateway_id": "dxgw-0123456789abcdef0",
+  "vlan": 100,
+  "asn": 65000,
+  "amazon_address": "192.168.1.1/30",
+  "customer_address": "192.168.1.2/30",
+  "address_family": "ipv4",
+  "route_filter_prefixes": ["10.0.0.0/16"],
+  "bgp_peers": [
+    { "bgp_peer_id": "bgp-peer-0123456789abcdef0", "asn": 65000, "address_family": "ipv4", "bgp_peer_state": "available", "bgp_status": "up" }
+  ],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "directconnect:DescribeVirtualInterfaces",
+  "collection_completeness": "complete",
+  "redacted": true
+}
+```
+
+Note there is no `auth_key`/`bgp_auth_key` field, and no
+`customer_router_config` field, anywhere in this model or its nested
+`bgp_peers` entries -- this is an intentional, permanent omission (see
+[docs/security.md](security.md#secrets)).
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_direct_connect_virtual_interfaces", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_direct_connect_gateways`
+
+**Purpose:** List Direct Connect Gateways (global-scope), optionally with
+their VGW/TGW associations.
+
+**AWS API:** `directconnect:describe_direct_connect_gateways` +
+`directconnect:describe_direct_connect_gateway_associations` (opt-in, one
+call per gateway, bounded by `max_fanout_calls`)
+
+**Required IAM permission:** `directconnect:DescribeDirectConnectGateways`,
+`directconnect:DescribeDirectConnectGatewayAssociations`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "include_associations": true }
+```
+
+`direct_connect_gateway_id` is optional. `region` selects which regional
+Direct Connect endpoint issues the call -- the gateway itself is a
+global-scope resource (`scope: "global"` on the record).
+
+**Output (`data`):** list of
+
+```json
+{
+  "direct_connect_gateway_id": "dxgw-0123456789abcdef0",
+  "direct_connect_gateway_name": "prod-dxgw",
+  "direct_connect_gateway_state": "available",
+  "amazon_side_asn": 64512,
+  "owner_account": "123456789012",
+  "associations": [
+    {
+      "association_id": "assoc-0123456789abcdef0",
+      "direct_connect_gateway_id": "dxgw-0123456789abcdef0",
+      "associated_gateway_id": "tgw-0123456789abcdef0",
+      "associated_gateway_type": "transitGateway",
+      "association_state": "associated",
+      "allowed_prefixes": ["10.0.0.0/8"]
+    }
+  ],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "directconnect:DescribeDirectConnectGateways",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`associations` is an empty list (not `null`) unless
+`include_associations: true` was passed and the fan-out budget allowed at
+least one lookup.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_direct_connect_gateways", "input": { "region": "us-east-1", "include_associations": true } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_hosted_zones`
+
+**Purpose:** List Route 53 hosted zones (global scope), including linked
+VPC IDs for private zones.
+
+**AWS API:** `route53:list_hosted_zones` (paginated) +
+`route53:get_hosted_zone` (called once per private zone, best-effort)
+
+**Required IAM permission:** `route53:ListHostedZones`,
+`route53:GetHostedZone`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`region` only selects which endpoint issues the call -- Route 53 has no
+regional API, and every record is stamped `scope: "global"` (with
+`region` still populated as the bootstrap region, so callers filtering by
+`region` are unaffected).
+
+**Output (`data`):** list of
+
+```json
+{
+  "hosted_zone_id": "Z0123456789ABCDEFGHIJ",
+  "name": "internal.example.com.",
+  "private_zone": true,
+  "record_set_count": 12,
+  "comment": "internal services",
+  "linked_vpc_ids": ["vpc-0123456789abcdef0"],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "route53:ListHostedZones",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`linked_vpc_ids` is only populated for private zones; if the follow-up
+`GetHostedZone` call fails for a given zone, that zone is still returned
+with `linked_vpc_ids: []` rather than being dropped or failing the whole
+call (best-effort enrichment).
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_hosted_zones", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_resource_record_sets`
+
+**Purpose:** List record-set summaries for one hosted zone, bounded by
+`max_record_sets`.
+
+**AWS API:** `route53:list_resource_record_sets` (paginated, capped)
+
+**Required IAM permission:** `route53:ListResourceRecordSets`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "hosted_zone_id": "Z0123456789ABCDEFGHIJ", "max_record_sets": 300 }
+```
+
+`max_record_sets` defaults to 300 and is capped at 1000 regardless of what
+is requested -- a hosted zone can hold an unbounded number of record
+sets, so this is a hard output cap, not a page size.
+
+**Output (`data`):** list of
+
+```json
+{
+  "name": "app.internal.example.com.",
+  "record_type": "A",
+  "ttl": 300,
+  "resource_records": ["10.0.1.15"],
+  "alias_target": null,
+  "set_identifier": null,
+  "routing_policy": "simple"
+}
+```
+
+These records do not carry `account_id`/`region`/`tags`/`observed_at` --
+`ResourceRecordSetSummary` is a plain nested record, not a top-level
+`AwsResource`. If `max_record_sets` is reached before the zone is fully
+enumerated, `metadata.warnings` carries an `OUTPUT_CAP_REACHED` entry
+alongside the (truncated) list.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_resource_record_sets", "input": { "region": "us-east-1", "hosted_zone_id": "Z0123456789ABCDEFGHIJ" } }
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "tool": "aws_list_resource_record_sets",
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "data": [
+    {
+      "name": "app.internal.example.com.",
+      "record_type": "A",
+      "ttl": 300,
+      "resource_records": ["10.0.1.15"],
+      "alias_target": null,
+      "set_identifier": null,
+      "routing_policy": "simple"
+    }
+  ],
+  "metadata": {
+    "count": 1,
+    "request_id": "...",
+    "warnings": [
+      {
+        "resource_type": "resource_record_set",
+        "code": "OUTPUT_CAP_REACHED",
+        "message": "Hosted zone Z0123456789ABCDEFGHIJ may have more record sets than the 300-record cap for a single call; results are truncated."
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+---
+
+## `aws_list_resolver_endpoints`
+
+**Purpose:** List Route 53 Resolver endpoints.
+
+**AWS API:** `route53resolver:list_resolver_endpoints` (paginated) +
+`route53resolver:list_resolver_endpoint_ip_addresses` (one call per
+endpoint, not bounded/opt-in -- always fetched since it is required to
+show the endpoint's IP addresses at all)
+
+**Required IAM permission:** `route53resolver:ListResolverEndpoints`,
+`route53resolver:ListResolverEndpointIpAddresses`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+**Output (`data`):** list of
+
+```json
+{
+  "resolver_endpoint_id": "rslvr-in-0123456789abcdef0",
+  "name": "inbound-resolver",
+  "status": "OPERATIONAL",
+  "direction": "INBOUND",
+  "host_vpc_id": "vpc-0123456789abcdef0",
+  "security_group_ids": ["sg-0123456789abcdef0"],
+  "ip_addresses": [
+    { "ip": "10.0.1.10", "subnet_id": "subnet-0123456789abcdef0", "status": "ATTACHED" }
+  ],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "route53resolver:ListResolverEndpoints",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_resolver_endpoints", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_resolver_rules`
+
+**Purpose:** List Route 53 Resolver rules -- the forwarding rules behind
+split-horizon DNS -- optionally with each rule's associated VPC IDs.
+
+**AWS API:** `route53resolver:list_resolver_rules` (paginated) +
+`route53resolver:list_resolver_rule_associations` (opt-in, one call per
+rule, bounded by `max_fanout_calls`)
+
+**Required IAM permission:** `route53resolver:ListResolverRules`,
+`route53resolver:ListResolverRuleAssociations`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "include_associations": true }
+```
+
+**Output (`data`):** list of
+
+```json
+{
+  "resolver_rule_id": "rslvr-rr-0123456789abcdef0",
+  "domain_name": "corp.example.com.",
+  "status": "COMPLETE",
+  "rule_type": "FORWARD",
+  "resolver_endpoint_id": "rslvr-out-0123456789abcdef0",
+  "target_ips": [{ "ip": "192.168.1.2", "port": 53 }],
+  "owner_id": "123456789012",
+  "share_status": "NOT_SHARED",
+  "associated_vpc_ids": ["vpc-0123456789abcdef0"],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "route53resolver:ListResolverRules",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`associated_vpc_ids` is `null` unless `include_associations: true` was
+passed. This is the mechanism behind split-horizon DNS: a private hosted
+zone plus a `FORWARD` rule scoped to specific VPCs via these
+associations. If the fan-out budget is exhausted, remaining rules keep
+`associated_vpc_ids: null` and a `FANOUT_CAP_REACHED` warning appears in
+`metadata.warnings`.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_resolver_rules", "input": { "region": "us-east-1", "include_associations": true } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_resolver_rule_associations`
+
+**Purpose:** List Resolver rule-to-VPC associations, optionally filtered
+by rule.
+
+**AWS API:** `route53resolver:list_resolver_rule_associations` (paginated)
+
+**Required IAM permission:** `route53resolver:ListResolverRuleAssociations`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "resolver_rule_id": "rslvr-rr-0123456789abcdef0" }
+```
+
+`resolver_rule_id` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "resolver_rule_association_id": "rslvr-rrassoc-0123456789abcdef0",
+  "resolver_rule_id": "rslvr-rr-0123456789abcdef0",
+  "vpc_id": "vpc-0123456789abcdef0",
+  "status": "COMPLETE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "route53resolver:ListResolverRuleAssociations",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_resolver_rule_associations", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_resolver_query_log_configs`
+
+**Purpose:** List Resolver query logging configurations.
+
+**Security note:** this tool returns configuration metadata only --
+destination ARN, status, share status. There is no field and no code path
+anywhere in this tool that can retrieve actual DNS query log entries;
+that is out of scope for this milestone entirely, not merely un-opted-in.
+
+**AWS API:** `route53resolver:list_resolver_query_log_configs` (paginated)
+
+**Required IAM permission:** `route53resolver:ListResolverQueryLogConfigs`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+**Output (`data`):** list of
+
+```json
+{
+  "resolver_query_log_config_id": "rqlc-0123456789abcdef0",
+  "name": "prod-query-logs",
+  "status": "CREATED",
+  "destination_arn": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/route53resolver/prod",
+  "share_status": "NOT_SHARED",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "route53resolver:ListResolverQueryLogConfigs",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_resolver_query_log_configs", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_dns_firewall_rule_groups`
+
+**Purpose:** List DNS Firewall rule groups, where the configured identity
+has permission.
+
+**AWS API:** `route53resolver:list_firewall_rule_groups` (paginated,
+best-effort)
+
+**Required IAM permission:** `route53resolver:ListFirewallRuleGroups`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+**Output (`data`):** list of
+
+```json
+{
+  "firewall_rule_group_id": "rslvr-frg-0123456789abcdef0",
+  "name": "prod-dns-firewall",
+  "rule_count": null,
+  "status": null,
+  "owner_id": "123456789012",
+  "share_status": "NOT_SHARED",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "route53resolver:ListFirewallRuleGroups",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`rule_count` and `status` are `null` in practice: `ListFirewallRuleGroups`
+itself never returns `RuleCount`/`Status` in its response, even though
+the model has fields for them -- these stay unpopulated unless a future
+milestone adds a per-group enrichment call. DNS Firewall is a distinct,
+separately-permissioned capability within the Resolver API; if this call
+is denied (e.g. `AccessDeniedException`), the tool degrades to an empty
+list with an `ACCESS_DENIED` (or `UNAVAILABLE`) `CollectionWarning`
+rather than failing the whole tool call -- see
+[docs/security.md](security.md).
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_dns_firewall_rule_groups", "input": { "region": "us-east-1" } }
+```
+
+**Example response (permission gap):**
+
+```json
+{
+  "success": true,
+  "tool": "aws_list_dns_firewall_rule_groups",
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "data": [],
+  "metadata": {
+    "count": 0,
+    "request_id": "...",
+    "warnings": [
+      {
+        "resource_type": "dns_firewall_rule_group",
+        "code": "ACCESS_DENIED",
+        "message": "Could not list DNS Firewall rule groups: AccessDeniedException."
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+---
+
+## `aws_list_dns_firewall_rule_group_associations`
+
+**Purpose:** List DNS Firewall rule group VPC associations, where
+allowed.
+
+**AWS API:** `route53resolver:list_firewall_rule_group_associations`
+(paginated, best-effort)
+
+**Required IAM permission:**
+`route53resolver:ListFirewallRuleGroupAssociations`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "vpc_id": "vpc-0123456789abcdef0" }
+```
+
+`vpc_id` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "firewall_rule_group_association_id": "rslvr-frgassoc-0123456789abcdef0",
+  "firewall_rule_group_id": "rslvr-frg-0123456789abcdef0",
+  "vpc_id": "vpc-0123456789abcdef0",
+  "priority": 100,
+  "mutation_protection": "ENABLED",
+  "status": "COMPLETE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "route53resolver:ListFirewallRuleGroupAssociations",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+Same access-denied degradation as `aws_list_dns_firewall_rule_groups`: a
+permission gap returns an empty list with an `ACCESS_DENIED` (or
+`UNAVAILABLE`) warning rather than an error.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_dns_firewall_rule_group_associations", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_core_networks`
+
+**Purpose:** List Cloud WAN core networks, optionally with segment/edge
+details and policy document.
+
+**AWS API:** `networkmanager:list_core_networks` (paginated) +
+`networkmanager:get_core_network` (opt-in via `include_details`, one call
+per core network) + `networkmanager:get_core_network_policy` (opt-in via
+`include_policy`, further one call per core network) -- both enrichments
+share one fan-out budget bounded by `max_fanout_calls`
+
+**Required IAM permission:** `networkmanager:ListCoreNetworks`,
+`networkmanager:GetCoreNetwork`, `networkmanager:GetCoreNetworkPolicy`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "include_details": true, "include_policy": false }
+```
+
+An account with no Cloud WAN usage returns an empty list, not an error.
+
+**Output (`data`):** list of
+
+```json
+{
+  "core_network_id": "core-network-0123456789abcdef0",
+  "core_network_arn": "arn:aws:networkmanager::123456789012:core-network/core-network-0123456789abcdef0",
+  "global_network_id": "global-network-0123456789abcdef0",
+  "owner_account_id": "123456789012",
+  "state": "AVAILABLE",
+  "description": "prod-core-network",
+  "segments": [{ "name": "production", "edge_locations": ["us-east-1"] }],
+  "edges": [{ "edge_location": "us-east-1", "asn": 64512 }],
+  "policy_document": null,
+  "policy_document_truncated": false,
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:ListCoreNetworks",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`segments`/`edges` are `null` unless `include_details: true` was passed;
+`policy_document` is `null` unless `include_policy: true` was passed, and
+is truncated past `MAX_POLICY_DOCUMENT_CHARS` (8000 characters, the same
+cap used for VPC endpoint policies -- `policy_document_truncated: true`
+when this happens). Where the account and SDK support them, both
+enrichment calls succeed and `collection_completeness` stays
+`"complete"`. If either enrichment call fails for a reason suggesting the
+capability itself is unsupported for this account/SDK combination (not a
+transient error), that core network's `collection_completeness` is set
+to `"partial"` and an `UNSUPPORTED_CAPABILITY` warning is added to
+`metadata.warnings` instead of the whole call failing; if the shared
+fan-out budget runs out first, the skipped enrichment instead produces a
+`FANOUT_CAP_REACHED` warning, also with `collection_completeness:
+"partial"` on that record.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_core_networks", "input": { "region": "us-east-1", "include_details": true } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_global_networks`
+
+**Purpose:** List Network Manager global networks.
+
+**AWS API:** `networkmanager:describe_global_networks` (paginated)
+
+**Required IAM permission:** `networkmanager:DescribeGlobalNetworks`
+
+**Input:**
+
+```json
+{ "region": "us-east-1" }
+```
+
+`global_network_ids` is optional.
+
+**Output (`data`):** list of
+
+```json
+{
+  "global_network_id": "global-network-0123456789abcdef0",
+  "global_network_arn": "arn:aws:networkmanager::123456789012:global-network/global-network-0123456789abcdef0",
+  "description": "prod-global-network",
+  "state": "AVAILABLE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:DescribeGlobalNetworks",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_global_networks", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_manager_sites`
+
+**Purpose:** List Network Manager sites for a global network.
+
+**AWS API:** `networkmanager:get_sites` (paginated)
+
+**Required IAM permission:** `networkmanager:GetSites`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" }
+```
+
+Both fields are required.
+
+**Output (`data`):** list of
+
+```json
+{
+  "site_id": "site-0123456789abcdef0",
+  "global_network_id": "global-network-0123456789abcdef0",
+  "description": "HQ datacenter",
+  "location": { "address": "1 Example Way, Seattle, WA", "latitude": "47.6062", "longitude": "-122.3321" },
+  "state": "AVAILABLE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:GetSites",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_manager_sites", "input": { "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_manager_devices`
+
+**Purpose:** List Network Manager devices for a global network.
+
+**AWS API:** `networkmanager:get_devices` (paginated)
+
+**Required IAM permission:** `networkmanager:GetDevices`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" }
+```
+
+Both fields are required.
+
+**Output (`data`):** list of
+
+```json
+{
+  "device_id": "device-0123456789abcdef0",
+  "global_network_id": "global-network-0123456789abcdef0",
+  "site_id": "site-0123456789abcdef0",
+  "description": "core router 1",
+  "device_type": "router",
+  "vendor": "Cisco",
+  "model": "ASR1001-X",
+  "state": "AVAILABLE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:GetDevices",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_manager_devices", "input": { "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_manager_links`
+
+**Purpose:** List Network Manager links for a global network.
+
+**AWS API:** `networkmanager:get_links` (paginated)
+
+**Required IAM permission:** `networkmanager:GetLinks`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" }
+```
+
+Both fields are required.
+
+**Output (`data`):** list of
+
+```json
+{
+  "link_id": "link-0123456789abcdef0",
+  "global_network_id": "global-network-0123456789abcdef0",
+  "site_id": "site-0123456789abcdef0",
+  "description": "ISP uplink",
+  "link_type": "broadband",
+  "bandwidth": { "upload_speed": 1000, "download_speed": 1000 },
+  "provider": "Example ISP",
+  "state": "AVAILABLE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:GetLinks",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_manager_links", "input": { "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_manager_connections`
+
+**Purpose:** List Network Manager connections for a global network.
+
+**AWS API:** `networkmanager:get_connections` (paginated)
+
+**Required IAM permission:** `networkmanager:GetConnections`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" }
+```
+
+Both fields are required.
+
+**Output (`data`):** list of
+
+```json
+{
+  "connection_id": "connection-0123456789abcdef0",
+  "global_network_id": "global-network-0123456789abcdef0",
+  "device_id": "device-0123456789abcdef0",
+  "connected_device_id": "device-0987654321fedcba0",
+  "link_id": "link-0123456789abcdef0",
+  "connected_link_id": null,
+  "description": "core-to-edge link",
+  "state": "AVAILABLE",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:GetConnections",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_manager_connections", "input": { "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_transit_gateway_registrations`
+
+**Purpose:** List Transit Gateway registrations to a Network Manager
+global network -- the link between a classic Transit Gateway and Network
+Manager.
+
+**AWS API:** `networkmanager:get_transit_gateway_registrations`
+(paginated)
+
+**Required IAM permission:**
+`networkmanager:GetTransitGatewayRegistrations`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" }
+```
+
+Both fields are required.
+
+**Output (`data`):** list of
+
+```json
+{
+  "global_network_id": "global-network-0123456789abcdef0",
+  "transit_gateway_arn": "arn:aws:ec2:us-east-1:123456789012:transit-gateway/tgw-0123456789abcdef0",
+  "state": "AVAILABLE",
+  "state_message": null,
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "global",
+  "source_api": "networkmanager:GetTransitGatewayRegistrations",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+Note this record has no ID field of its own beyond `transit_gateway_arn`
+-- a registration is identified by which Transit Gateway it registers,
+not by a separate registration ID.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_transit_gateway_registrations", "input": { "region": "us-east-1", "global_network_id": "global-network-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_flow_logs`
+
+**Purpose:** List VPC Flow Log configurations and delivery/aggregation
+metadata, optionally filtered by resource ID.
+
+**Security note:** this tool returns configuration and delivery metadata
+only (destination, status, format, aggregation interval). There is no
+field, parameter, or code path anywhere in this codebase that retrieves
+actual flow log record contents (the traffic records written to
+CloudWatch Logs/S3/Kinesis Firehose) -- that is an explicit,
+unconditional guardrail, not an opt-in choice.
+
+**AWS API:** `ec2:describe_flow_logs` (paginated)
+
+**Required IAM permission:** `ec2:DescribeFlowLogs`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "resource_id": "vpc-0123456789abcdef0" }
+```
+
+`resource_id` and `flow_log_ids` are both optional (`resource_id` takes
+precedence if both are given).
+
+**Output (`data`):** list of
+
+```json
+{
+  "flow_log_id": "fl-0123456789abcdef0",
+  "flow_log_status": "ACTIVE",
+  "resource_id": "vpc-0123456789abcdef0",
+  "traffic_type": "ALL",
+  "log_destination_type": "cloud-watch-logs",
+  "log_destination": "arn:aws:logs:us-east-1:123456789012:log-group:/vpc/flowlogs",
+  "log_group_name": "/vpc/flowlogs",
+  "deliver_logs_status": "SUCCESS",
+  "deliver_logs_error_message": null,
+  "log_format": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
+  "max_aggregation_interval": 600,
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeFlowLogs",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_flow_logs", "input": { "region": "us-east-1", "resource_id": "vpc-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_get_hybrid_topology`
+
+**Purpose:** Join VPC, VPN, Direct Connect, and DNS resources attached to
+one Transit Gateway into a typed node/edge topology graph -- the hybrid
+connectivity counterpart to Milestone 2's `aws_get_vpc_topology`, anchored
+on a Transit Gateway rather than a single VPC. This is a connectivity/
+configuration map, not a reachability analysis: it does not claim or
+imply that traffic actually flows along any edge, only that AWS reports
+the relationship. See [docs/architecture.md](architecture.md) for how
+Milestone 2's topology assembly pattern (raw collection fully separate
+from graph construction) carries over here.
+
+Classic Network Manager resources (sites, devices, links, connections)
+are **not** joined into this graph, even when a registered global network
+exists for the Transit Gateway -- they have their own dedicated
+`aws_list_network_manager_*` tools above. Only VPC, TGW, VPN, Direct
+Connect Gateway, and DNS (hosted zones + Resolver endpoints) are joined
+here, matching this milestone's topology scope exactly.
+
+**AWS API:** `ec2:describe_transit_gateways`,
+`ec2:describe_transit_gateway_attachments`,
+`ec2:describe_vpn_connections`, `ec2:describe_customer_gateways`,
+`route53:list_hosted_zones` (+ `route53:get_hosted_zone` for private
+zones), `route53resolver:list_resolver_endpoints` (+
+`route53resolver:list_resolver_endpoint_ip_addresses`) -- invoked only for
+resources that attach to (or are joined from) the requested Transit
+Gateway.
+
+**Required IAM permission:** the union of every permission needed by the
+tools above: `ec2:DescribeTransitGateways`,
+`ec2:DescribeTransitGatewayAttachments`, `ec2:DescribeVpnConnections`,
+`ec2:DescribeCustomerGateways`, `route53:ListHostedZones`,
+`route53:GetHostedZone`, `route53resolver:ListResolverEndpoints`,
+`route53resolver:ListResolverEndpointIpAddresses`.
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0" }
+```
+
+Both fields are required -- like `aws_get_vpc_topology`, this tool has no
+"list everything" mode; it always scopes to one Transit Gateway. If the
+Transit Gateway does not exist in the given region, the tool returns a
+`RESOURCE_NOT_FOUND` error rather than an empty graph.
+
+**Output (`data`):**
+
+```json
+{
+  "transit_gateway_id": "tgw-0123456789abcdef0",
+  "region": "us-east-1",
+  "nodes": [
+    { "node_id": "tgw-0123456789abcdef0", "node_type": "transit_gateway", "label": "prod-hub", "vpc_id": null, "region": "us-east-1", "tags": { "Name": "prod-hub" } },
+    { "node_id": "tgw-attach-0123456789abcdef0", "node_type": "transit_gateway_attachment", "label": "vpc:vpc-0123456789abcdef0", "vpc_id": null, "region": "us-east-1", "tags": {} },
+    { "node_id": "vpc-0123456789abcdef0", "node_type": "vpc", "label": "vpc-0123456789abcdef0", "vpc_id": "vpc-0123456789abcdef0", "region": "us-east-1", "tags": {} },
+    { "node_id": "tgw-attach-0987654321fedcba0", "node_type": "transit_gateway_attachment", "label": "vpn:vpn-0123456789abcdef0", "vpc_id": null, "region": "us-east-1", "tags": {} },
+    { "node_id": "vpn-0123456789abcdef0", "node_type": "vpn_connection", "label": "vpn-0123456789abcdef0", "vpc_id": null, "region": "us-east-1", "tags": {} },
+    { "node_id": "cgw-0123456789abcdef0", "node_type": "customer_gateway", "label": "cgw-0123456789abcdef0", "vpc_id": null, "region": "us-east-1", "tags": {} },
+    { "node_id": "external:203.0.113.99", "node_type": "external_endpoint", "label": "203.0.113.99", "vpc_id": null, "region": "us-east-1", "tags": {} }
+  ],
+  "edges": [
+    { "source_id": "tgw-0123456789abcdef0", "target_id": "tgw-attach-0123456789abcdef0", "relationship": "has_attachment", "evidence": "attachment tgw-attach-0123456789abcdef0 TransitGatewayId=tgw-0123456789abcdef0" },
+    { "source_id": "tgw-attach-0123456789abcdef0", "target_id": "vpc-0123456789abcdef0", "relationship": "attaches", "evidence": "attachment tgw-attach-0123456789abcdef0 ResourceId=vpc-0123456789abcdef0 ResourceType=vpc" },
+    { "source_id": "tgw-0123456789abcdef0", "target_id": "tgw-attach-0987654321fedcba0", "relationship": "has_attachment", "evidence": "attachment tgw-attach-0987654321fedcba0 TransitGatewayId=tgw-0123456789abcdef0" },
+    { "source_id": "tgw-attach-0987654321fedcba0", "target_id": "vpn-0123456789abcdef0", "relationship": "attaches", "evidence": "attachment tgw-attach-0987654321fedcba0 ResourceId=vpn-0123456789abcdef0 ResourceType=vpn" },
+    { "source_id": "vpn-0123456789abcdef0", "target_id": "cgw-0123456789abcdef0", "relationship": "terminates_at", "evidence": "vpn connection vpn-0123456789abcdef0 CustomerGatewayId=cgw-0123456789abcdef0" },
+    { "source_id": "cgw-0123456789abcdef0", "target_id": "external:203.0.113.99", "relationship": "represents", "evidence": "customer gateway cgw-0123456789abcdef0 IpAddress=203.0.113.99" }
+  ],
+  "warnings": [],
+  "api_call_count": 7
+}
+```
+
+`node_type` values this tool can produce, beyond Milestone 2's VPC-scoped
+set: `transit_gateway`, `transit_gateway_attachment`, `vpc`,
+`vpn_connection`, `customer_gateway`, `direct_connect_gateway`,
+`hosted_zone`, `resolver_endpoint`, and `external_endpoint`.
+`external_endpoint` is this tool's explicit label for a genuinely
+non-AWS entity -- specifically, a customer gateway's public on-premises
+IP address -- that the graph can name but not further resolve; it is
+distinct from an **orphan reference** (an edge whose target has no node
+at all), which this tool uses for AWS-domain resources outside this
+milestone's resolution scope.
+
+`relationship` values include `has_attachment` (Transit Gateway to its
+attachment), `attaches` (an attachment to the VPC/VPN
+connection/Direct-Connect-Gateway it attaches), `terminates_at` (a VPN
+connection to its customer gateway), `represents` (a customer gateway to
+the `external_endpoint` node for its public IP), `resolves_for` (a VPC to
+a hosted zone whose `linked_vpc_ids` include it), and `hosts` (a VPC to a
+Resolver endpoint whose `host_vpc_id` matches it).
+
+Attachment resource types this tool resolves into their own node beyond
+the attachment node itself are `vpc`, `vpn`, and
+`direct-connect-gateway`. An attachment of any other type (`peering`,
+`connect`, `tgw-peering`) still gets a `transit_gateway_attachment` node
+-- just no deeper resolution -- paired with an `OUT_OF_SCOPE_TARGET`
+`CollectionWarning` explaining why no further node was created. A
+cross-account attachment (`resource_owner_id` differing from the caller's
+own account) still gets a node but is paired with a
+`CROSS_ACCOUNT_ATTACHMENT` warning noting only attachment-level metadata
+is visible. `api_call_count` tracks every AWS API call made while
+assembling this graph.
+
+**Example request:**
+
+```json
+{ "tool": "aws_get_hybrid_topology", "input": { "region": "us-east-1", "transit_gateway_id": "tgw-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope (a single object, not a list -- `metadata.count` is not set for
+this tool, matching `aws_get_vpc_topology`).
+
+---
+
 ## Example IAM policy
 
 Least-privilege policy for the identity aws-cloudops-mcp runs as
 (`AWSCloudOpsMCPReadOnlyRole` in production). Grants exactly what every
-Milestone 1 + Milestone 2 tool needs — nothing else:
+Milestone 1 + Milestone 2 + Milestone 3 tool needs — nothing else:
 
 ```json
 {
@@ -898,7 +2648,17 @@ Milestone 1 + Milestone 2 tool needs — nothing else:
         "ec2:DescribeManagedPrefixLists",
         "ec2:GetManagedPrefixListEntries",
         "ec2:DescribeVpcEndpoints",
-        "ec2:DescribeVpcEndpointServices"
+        "ec2:DescribeVpcEndpointServices",
+        "ec2:DescribeTransitGateways",
+        "ec2:DescribeTransitGatewayAttachments",
+        "ec2:DescribeTransitGatewayRouteTables",
+        "ec2:GetTransitGatewayRouteTableAssociations",
+        "ec2:GetTransitGatewayRouteTablePropagations",
+        "ec2:SearchTransitGatewayRoutes",
+        "ec2:DescribeVpnConnections",
+        "ec2:DescribeCustomerGateways",
+        "ec2:DescribeVpnGateways",
+        "ec2:DescribeFlowLogs"
       ],
       "Resource": "*"
     },
@@ -915,6 +2675,58 @@ Milestone 1 + Milestone 2 tool needs — nothing else:
       "Resource": "*"
     },
     {
+      "Sid": "AWSCloudOpsMCPReadOnlyDirectConnect",
+      "Effect": "Allow",
+      "Action": [
+        "directconnect:DescribeConnections",
+        "directconnect:DescribeLags",
+        "directconnect:DescribeVirtualInterfaces",
+        "directconnect:DescribeDirectConnectGateways",
+        "directconnect:DescribeDirectConnectGatewayAssociations"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AWSCloudOpsMCPReadOnlyRoute53",
+      "Effect": "Allow",
+      "Action": [
+        "route53:ListHostedZones",
+        "route53:GetHostedZone",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AWSCloudOpsMCPReadOnlyRoute53Resolver",
+      "Effect": "Allow",
+      "Action": [
+        "route53resolver:ListResolverEndpoints",
+        "route53resolver:ListResolverEndpointIpAddresses",
+        "route53resolver:ListResolverRules",
+        "route53resolver:ListResolverRuleAssociations",
+        "route53resolver:ListResolverQueryLogConfigs",
+        "route53resolver:ListFirewallRuleGroups",
+        "route53resolver:ListFirewallRuleGroupAssociations"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AWSCloudOpsMCPReadOnlyNetworkManager",
+      "Effect": "Allow",
+      "Action": [
+        "networkmanager:ListCoreNetworks",
+        "networkmanager:GetCoreNetwork",
+        "networkmanager:GetCoreNetworkPolicy",
+        "networkmanager:DescribeGlobalNetworks",
+        "networkmanager:GetSites",
+        "networkmanager:GetDevices",
+        "networkmanager:GetLinks",
+        "networkmanager:GetConnections",
+        "networkmanager:GetTransitGatewayRegistrations"
+      ],
+      "Resource": "*"
+    },
+    {
       "Sid": "AWSCloudOpsMCPReadOnlySTS",
       "Effect": "Allow",
       "Action": ["sts:GetCallerIdentity"],
@@ -924,9 +2736,10 @@ Milestone 1 + Milestone 2 tool needs — nothing else:
 }
 ```
 
-`Describe*`/`Get*` EC2 and ELB actions do not support resource-level
+`Describe*`/`Get*`/`List*` actions do not support resource-level
 restriction in IAM (they require `Resource: "*"`); scoping happens by
 which *account/role* this policy is attached to, not by ARN. **Do not**
 attach `AdministratorAccess`, `PowerUserAccess`, or a wildcard `ec2:*`/
-`elasticloadbalancing:*` policy to this role. See
+`elasticloadbalancing:*`/`route53:*`/`route53resolver:*`/
+`directconnect:*`/`networkmanager:*` policy to this role. See
 [docs/security.md](security.md) for the full security model.

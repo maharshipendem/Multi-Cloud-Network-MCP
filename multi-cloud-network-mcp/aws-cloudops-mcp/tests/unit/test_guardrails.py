@@ -17,6 +17,7 @@ READ_ONLY_OPERATIONS = [
     "describe_route_tables",
     "list_tags_for_resource",
     "describe_vpc_attribute",
+    "search_transit_gateway_routes",
 ]
 
 BLOCKED_OPERATIONS = [

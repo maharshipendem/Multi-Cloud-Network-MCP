@@ -28,7 +28,38 @@ MILESTONE_2_TOOL_NAMES = {
     "aws_get_vpc_topology",
 }
 
-EXPECTED_TOOL_NAMES = MILESTONE_1_TOOL_NAMES | MILESTONE_2_TOOL_NAMES
+MILESTONE_3_TOOL_NAMES = {
+    "aws_list_transit_gateways",
+    "aws_list_transit_gateway_attachments",
+    "aws_list_transit_gateway_route_tables",
+    "aws_search_transit_gateway_routes",
+    "aws_list_vpn_connections",
+    "aws_list_customer_gateways",
+    "aws_list_vpn_gateways",
+    "aws_list_direct_connect_connections",
+    "aws_list_direct_connect_lags",
+    "aws_list_direct_connect_virtual_interfaces",
+    "aws_list_direct_connect_gateways",
+    "aws_list_hosted_zones",
+    "aws_list_resource_record_sets",
+    "aws_list_resolver_endpoints",
+    "aws_list_resolver_rules",
+    "aws_list_resolver_rule_associations",
+    "aws_list_resolver_query_log_configs",
+    "aws_list_dns_firewall_rule_groups",
+    "aws_list_dns_firewall_rule_group_associations",
+    "aws_list_core_networks",
+    "aws_list_global_networks",
+    "aws_list_network_manager_sites",
+    "aws_list_network_manager_devices",
+    "aws_list_network_manager_links",
+    "aws_list_network_manager_connections",
+    "aws_list_transit_gateway_registrations",
+    "aws_list_flow_logs",
+    "aws_get_hybrid_topology",
+}
+
+EXPECTED_TOOL_NAMES = MILESTONE_1_TOOL_NAMES | MILESTONE_2_TOOL_NAMES | MILESTONE_3_TOOL_NAMES
 
 
 @pytest.mark.asyncio
@@ -74,4 +105,4 @@ async def test_no_tool_name_implies_mutation(settings: Settings) -> None:
     server = build_server(settings)
     tools = await server.list_tools()
     for tool in tools:
-        assert tool.name.startswith(("aws_get_", "aws_list_")), tool.name
+        assert tool.name.startswith(("aws_get_", "aws_list_", "aws_search_")), tool.name

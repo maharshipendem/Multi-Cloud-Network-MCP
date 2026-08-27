@@ -161,6 +161,29 @@ file size, still part of the same normalized-response contract).
 resource types and confirm read-only status via `list_tools()` alone,
 without importing this codebase.
 
+**Milestone 3 additions** — one `aws/*.py` service module per new
+resource family again: `transit_gateway.py`, `vpn.py`, `directconnect.py`,
+`dns.py` (Route 53 + Route 53 Resolver + DNS Firewall share one module
+since they share the Resolver API and the split-horizon DNS join between
+them), `networkmanager.py` (classic Network Manager + Cloud WAN, which
+share the `networkmanager` boto3 client), `flowlogs.py`, and
+`hybrid_topology.py`. `READ_ONLY_PREFIXES` in `security/guardrails.py`
+gained a `search_` prefix (with `ec2:SearchTransitGatewayRoutes`
+explicitly added to `READ_ONLY_ACTIONS`) because that operation is
+genuinely read-only but doesn't follow the `describe_`/`get_`/`list_`
+naming convention every other AWS read API in this codebase uses — this
+is the guardrail correctly rejecting an unrecognized operation name by
+default until the exception was reviewed and added explicitly, not a
+guardrail bug. `models/common.py`'s `AwsResource` base gained four
+additive optional fields used across Milestone 3's models: `scope`
+(`"regional"` by default; Route 53 hosted zones, DX gateways, and Network
+Manager/Cloud WAN resources set `"global"`), `source_api` (which AWS
+operation produced this record, for traceability),
+`collection_completeness` (`"complete"` unless a bounded enrichment call
+degraded, in which case `"partial"`), and `redacted` (`true` on any
+record from which a field was deliberately withheld — see
+[docs/security.md](security.md)).
+
 ## Topology construction
 
 `aws_get_vpc_topology` (Milestone 2) is the one tool that doesn't map to a
@@ -227,6 +250,91 @@ every underlying AWS request made during topology assembly (each page of
 a paginated call counts separately) and surfaces it as
 `VpcTopology.api_call_count`, so a caller can reason about the cost of one
 `aws_get_vpc_topology` invocation.
+
+## Hybrid topology construction
+
+`aws_get_hybrid_topology` (Milestone 3) is the transit/hybrid-connectivity
+analog of `aws_get_vpc_topology`: a composition layer, not a single AWS
+API family. `aws/hybrid_topology.py` never calls boto3 directly; like
+`aws/topology.py`, it only calls other already-normalizing `aws.*`
+service functions and shapes their output into a graph, reusing the same
+`TopologyNode`/`TopologyEdge` shapes from `models/topology.py`
+(`models/hybrid_topology.py` adds only the `HybridTopology` container
+around them).
+
+**Why anchor on a Transit Gateway, not a VPC or "all resources."** A TGW
+is the one resource type the milestone's scope (VPC, TGW, VPN, DX, Cloud
+WAN, DNS) naturally hangs off of — every attachment type this milestone
+covers (`vpc`, `vpn`, `direct-connect-gateway`) is, definitionally, a TGW
+attachment. Scoping the tool to one `transit_gateway_id` keeps the graph
+bounded and the AWS call count predictable, the same reasoning that scoped
+`aws_get_vpc_topology` to one `vpc_id`.
+
+```
+aws_get_hybrid_topology(region, transit_gateway_id)
+         |
+         v
+  aws.hybrid_topology.get_hybrid_topology()
+         |
+         +--> aws.transit_gateway.list_transit_gateways        (anchor lookup;
+         |                                                       ResourceNotFoundError if absent)
+         +--> aws.transit_gateway.list_transit_gateway_attachments
+         |
+         |    for each attachment, by resource_type:
+         |      vpc                    --> aws.networking.list_vpcs
+         |                                 --> aws.dns.list_hosted_zones      (linked_vpc_ids match)
+         |                                 --> aws.dns.list_resolver_endpoints (host_vpc_id match)
+         |      vpn                    --> aws.vpn.list_vpn_connections
+         |                                 --> aws.vpn.list_customer_gateways
+         |                                 --> external_endpoint node (customer gateway public IP)
+         |      direct-connect-gateway --> aws.directconnect.list_direct_connect_gateways
+         |      (anything else, e.g. peering, connect, tgw-peering)
+         |                             --> attachment node only; OUT_OF_SCOPE_TARGET warning
+         |
+         v
+  Same node/edge/evidence shape as aws_get_vpc_topology; nodes sorted by
+  (node_type, node_id), edges by (source_id, target_id, relationship) for
+  deterministic output; api_call_count tracked the same way.
+         |
+         v
+  HybridTopology { transit_gateway_id, region, nodes[], edges[], warnings[], api_call_count }
+```
+
+**`external_endpoint` nodes vs. orphan references.** Milestone 2
+established the orphan-reference pattern: an edge whose `target_id` has
+no matching node, always paired with a `CollectionWarning`, used when the
+missing resource is still an AWS resource just outside this milestone's
+collection scope (e.g. an out-of-scope attachment type above). Milestone
+3 adds a second, deliberately distinct pattern for a case orphan
+references don't fit: a customer gateway's public IP is not an AWS
+resource at all — it is the genuine on-premises network boundary the spec
+asks to have "labeled." Modeling it as an orphan reference would
+misrepresent it as an AWS resource this milestone simply didn't collect.
+Instead it gets its own `external_endpoint` node (`node_id` = the public
+IP, `label` = the same), joined to the customer gateway node by a
+`represents` edge — an explicit, correctly-typed graph entry rather than
+a bare dangling reference.
+
+**Deliberate exclusion of classic Network Manager from the join.** The
+milestone's topology sentence names "VPC, TGW, VPN, DX, Cloud WAN, and
+DNS" — it does not mention Network Manager sites, devices, links, or
+connections. Those have their own granular `aws_list_network_manager_*`
+tools (documented in [docs/tools.md](tools.md)) but are not joined into
+`aws_get_hybrid_topology`'s graph: a classic Network Manager site/device
+doesn't have a deterministic, evidence-backed edge into a TGW attachment
+graph the way a VPC or VPN connection does (the on-ramp is a physical/
+logical construct Network Manager tracks separately, not an AWS API
+relationship this tool can cite as evidence), so joining them would
+require inference rather than observation — which
+[docs/security.md](security.md) explicitly disallows for this tool.
+
+**No reachability claims.** Every edge here, like `aws_get_vpc_topology`'s,
+carries `evidence` — a specific AWS API field observation, never an
+inference. The tool's output is a configuration/attachment graph, not a
+reachability analysis: it does not evaluate route table contents, security
+group rules, NACLs, or tunnel state to determine whether traffic can
+actually flow between two nodes. See
+[docs/security.md](security.md#no-reachability-claims).
 
 ## Multi-cloud compatibility
 

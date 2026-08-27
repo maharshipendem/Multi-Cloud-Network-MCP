@@ -57,12 +57,27 @@ class AwsResource(BaseModel):
     call(s) that produced this record, not a live/real-time value -- it lets
     a caller (or a later diffing/troubleshooting tool) reason about how
     stale a given record is.
+
+    Milestone 3 additions (all optional/defaulted, so Milestone 1/2 service
+    functions need no changes): ``scope`` distinguishes a regional resource
+    from a global one (Route 53, Network Manager global networks) --
+    ``region`` stays populated even for global resources (the endpoint
+    region the call was actually issued through) so existing consumers
+    filtering by region are unaffected. ``source_api`` names the specific
+    AWS API call that produced the record, for provenance. ``collection_completeness``
+    and ``redacted`` flag records assembled from a partial or
+    field-redacted response (e.g. a VPN connection with its pre-shared key
+    stripped) rather than leaving that ambiguous.
     """
 
     account_id: str
     region: str
     observed_at: str
     tags: Tags = Field(default_factory=dict)
+    scope: str = "regional"
+    source_api: str | None = None
+    collection_completeness: str = "complete"
+    redacted: bool = False
 
 
 class VpcCidrBlockAssociation(BaseModel):

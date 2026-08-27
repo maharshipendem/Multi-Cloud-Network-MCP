@@ -12,9 +12,10 @@ contains **only** AWS functionality.
 
 ## Current milestone
 
-**Milestone 2 — VPC Topology (read-only).** See
-[MILESTONE1_STATUS.md](MILESTONE1_STATUS.md) and
-[MILESTONE2_STATUS.md](MILESTONE2_STATUS.md) for detailed status reports.
+**Milestone 3 — Transit, Hybrid Connectivity, and DNS (read-only).** See
+[MILESTONE1_STATUS.md](MILESTONE1_STATUS.md),
+[MILESTONE2_STATUS.md](MILESTONE2_STATUS.md), and
+[MILESTONE3_STATUS.md](MILESTONE3_STATUS.md) for detailed status reports.
 
 Implemented:
 
@@ -25,7 +26,7 @@ Implemented:
   cross-account `sts:AssumeRole`
 - Structured JSON logging with per-request correlation IDs
 - A read-only security guardrail layer, independent of IAM
-- Seventeen MCP tools (see [docs/tools.md](docs/tools.md)):
+- Forty-five MCP tools (see [docs/tools.md](docs/tools.md)):
   - `aws_get_caller_identity`, `aws_list_regions`
   - `aws_list_vpcs`, `aws_list_subnets`, `aws_list_route_tables`
   - `aws_list_internet_gateways`, `aws_list_egress_only_internet_gateways`,
@@ -37,20 +38,46 @@ Implemented:
   - `aws_list_load_balancers`
   - `aws_get_vpc_topology` — joins the above into a typed node/edge graph
     for one VPC
+  - `aws_list_transit_gateways`, `aws_list_transit_gateway_attachments`,
+    `aws_list_transit_gateway_route_tables`,
+    `aws_search_transit_gateway_routes`
+  - `aws_list_vpn_connections`, `aws_list_customer_gateways`,
+    `aws_list_vpn_gateways`
+  - `aws_list_direct_connect_connections`, `aws_list_direct_connect_lags`,
+    `aws_list_direct_connect_virtual_interfaces`,
+    `aws_list_direct_connect_gateways`
+  - `aws_list_hosted_zones`, `aws_list_resource_record_sets`,
+    `aws_list_resolver_endpoints`, `aws_list_resolver_rules`,
+    `aws_list_resolver_rule_associations`,
+    `aws_list_resolver_query_log_configs`,
+    `aws_list_dns_firewall_rule_groups`,
+    `aws_list_dns_firewall_rule_group_associations`
+  - `aws_list_core_networks`, `aws_list_global_networks`,
+    `aws_list_network_manager_sites`, `aws_list_network_manager_devices`,
+    `aws_list_network_manager_links`, `aws_list_network_manager_connections`,
+    `aws_list_transit_gateway_registrations`
+  - `aws_list_flow_logs` — configuration/delivery metadata only, never log
+    contents
+  - `aws_get_hybrid_topology` — joins VPC/TGW/VPN/DX/DNS into a typed
+    node/edge graph anchored on one Transit Gateway
 - Every AWS record carries `account_id`/`region`/`tags`/`observed_at`;
   optional per-item enrichment (DNS attributes, prefix list entries,
-  target health) is bounded and reported via warnings, never silently
-  truncated
+  target health, TGW route table associations/propagations, DNS resolver
+  rule associations, Cloud WAN core network details/policy) is bounded and
+  reported via warnings, never silently truncated
+- VPN pre-shared keys and Direct Connect BGP authentication keys are never
+  read from the AWS API response at all (redaction by omission, not
+  scrubbing) — see [docs/security.md](docs/security.md)
 - Capability metadata on every tool for future multi-cloud federation
   discovery
-- Unit tests (mocked AWS via [moto](https://github.com/getmoto/moto)) and an
-  opt-in integration test suite
+- Unit tests (mocked AWS via [moto](https://github.com/getmoto/moto) and
+  `botocore.stub.Stubber`) and an opt-in integration test suite
 - Docker image and docker-compose for local development
 
-Not implemented yet (by design — see [Roadmap](#roadmap)): Transit Gateway,
-Direct Connect, VPN, Route 53/DNS, CloudWatch/CloudTrail, cross-account
-discovery, path/reachability analysis, Aviatrix integration, or any
-infrastructure-**mutating** capability.
+Not implemented yet (by design — see [Roadmap](#roadmap)): CloudWatch/
+CloudTrail, AWS Config, cross-account discovery, path/reachability
+analysis, Aviatrix integration, or any infrastructure-**mutating**
+capability.
 
 ## Architecture
 
@@ -211,13 +238,12 @@ See [docs/development.md](docs/development.md) for details.
 ## Roadmap
 
 Future AWS MCP milestones (not implemented here, but the architecture is
-designed to accommodate them without a rewrite): Transit Gateway (+ route
-tables/attachments), Site-to-Site VPN, Direct Connect, Route 53 (+ private
-hosted zones, Resolver), Network Firewall, CloudWatch, CloudTrail, AWS
-Config, Reachability Analyzer, Flow Logs, AWS Organizations / multi-account
-discovery, path analysis, network troubleshooting, and Aviatrix
-integration. A multi-cloud federation/orchestration layer sitting above
-the AWS/Azure/GCP MCP servers is planned as a separate project.
+designed to accommodate them without a rewrite): Network Firewall,
+CloudWatch, CloudTrail, AWS Config, Reachability Analyzer, AWS
+Organizations / multi-account discovery, path analysis, network
+troubleshooting, and Aviatrix integration. A multi-cloud federation/
+orchestration layer sitting above the AWS/Azure/GCP MCP servers is
+planned as a separate project.
 
 ## License
 

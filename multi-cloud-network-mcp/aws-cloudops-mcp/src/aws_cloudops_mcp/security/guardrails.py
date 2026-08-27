@@ -20,7 +20,16 @@ from aws_cloudops_mcp.exceptions import GuardrailViolationError
 # botocore/boto3 client methods are snake_case (e.g. "describe_vpcs",
 # "get_caller_identity", "list_subnets"). These are the only prefixes a
 # tool is allowed to invoke through the AWS service layer.
-READ_ONLY_PREFIXES: tuple[str, ...] = ("describe_", "get_", "list_")
+#
+# "search_" was added in Milestone 3 for ec2:SearchTransitGatewayRoutes --
+# a genuinely read-only, IAM-Describe-equivalent AWS action that simply
+# doesn't follow the describe/get/list naming convention. This is the
+# guardrail working as designed: the operation was rejected by default
+# until this explicit, reviewable addition, rather than silently allowed.
+# Every AWS `search_*` client method observed to date (this one, plus
+# SearchLocalGatewayRoutes and SearchTransitGatewayMulticastGroups) is a
+# read/query operation with no AWS-documented side effect.
+READ_ONLY_PREFIXES: tuple[str, ...] = ("describe_", "get_", "list_", "search_")
 
 # Explicit example of operations Milestone 1 tools are known to use. This is
 # not exhaustive -- new read-only operations are permitted automatically as
@@ -30,6 +39,7 @@ READ_ONLY_ACTIONS: frozenset[str] = frozenset(
     {
         "get_caller_identity",
         "describe_regions",
+        "search_transit_gateway_routes",
         "describe_vpcs",
         "describe_subnets",
         "describe_route_tables",
