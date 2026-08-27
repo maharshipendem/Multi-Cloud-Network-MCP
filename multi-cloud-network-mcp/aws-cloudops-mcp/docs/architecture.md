@@ -142,7 +142,91 @@ strong engineering reason" allowance:
   construction. Without it, this logic would be copy-pasted into (and drift
   across) every tool module as the tool count grows in later milestones.
 
-No other changes were made to the suggested structure.
+No other changes were made to the suggested structure for Milestone 1.
+
+**Milestone 2 additions** — one `aws/*.py` service module per new resource
+family (`gateways.py`, `nat.py`, `security.py`, `nacls.py`, `enis.py`,
+`peering.py`, `prefix_lists.py`, `endpoints.py`, `loadbalancers.py`,
+`topology.py`), following the same one-module-per-resource-family pattern
+already established. Three shared modules were added alongside them:
+`aws/filters.py` (the `vpc_filter`/`ids_filter` builders, factored out of
+`aws/networking.py` once four more modules needed the same `Filters`
+shape), `aws/collection.py` (`observed_at` timestamps, the opt-in AWS-call
+counter, and `CollectionResult` — the wrapper a service function returns
+when it may produce partial-result warnings), and `models/network_resources.py`
++ `models/topology.py` (kept separate from `models/common.py` purely for
+file size, still part of the same normalized-response contract).
+`tools/capabilities.py` adds the `meta=` dict attached to every tool
+(Milestone 1's included) so a future federation layer can discover
+resource types and confirm read-only status via `list_tools()` alone,
+without importing this codebase.
+
+## Topology construction
+
+`aws_get_vpc_topology` (Milestone 2) is the one tool that doesn't map to a
+single AWS API family — it's a composition layer that calls every other
+Milestone 2 service-layer function for one VPC and shapes their already-
+normalized output into a graph. `aws/topology.py` never calls boto3
+directly; it only imports and calls the other `aws.*` service functions,
+keeping "raw collection" (each `list_*` function), "normalization" (each
+service module's own dataclasses/models), and "graph assembly" (this
+module) in three cleanly separated layers, per the milestone's
+architecture requirement:
+
+```
+aws_get_vpc_topology(region, vpc_id)
+         |
+         v
+  aws.topology.get_vpc_topology()
+         |
+         +--> aws.networking.list_vpcs/list_subnets/list_route_tables
+         +--> aws.gateways.list_internet_gateways / list_egress_only_internet_gateways
+         +--> aws.nat.list_nat_gateways
+         +--> aws.security.list_security_groups   (+ rules)
+         +--> aws.nacls.list_network_acls
+         +--> aws.enis.list_network_interfaces
+         +--> aws.peering.list_vpc_peering_connections
+         +--> aws.endpoints.list_vpc_endpoints
+         +--> aws.loadbalancers.list_load_balancers (+ listeners, target groups)
+         +--> aws.prefix_lists.list_managed_prefix_lists   (only for referenced pl-*)
+         |
+         v
+  For each result: build a TopologyNode (id, type, label, tags) and
+  TopologyEdge(s) (source_id, target_id, relationship, evidence) --
+  evidence is always a specific field observation (e.g. "route in
+  rtb-123: 0.0.0.0/0 -> gateway:igw-abc"), never an inference.
+         |
+         v
+  Sort nodes by (node_type, node_id), edges by (source_id, target_id,
+  relationship) for deterministic output; collect CollectionWarnings
+  from every sub-call plus any out-of-scope route/peering targets.
+         |
+         v
+  VpcTopology { vpc_id, region, nodes[], edges[], warnings[], api_call_count }
+```
+
+**Orphan references.** A route can target a resource type this milestone
+doesn't collect (a virtual private gateway, in advance of hybrid-
+connectivity milestones) and a peering connection's other side is, by
+definition, outside a single-VPC topology's scope. Both cases still
+produce a real edge (AWS reported the relationship; dropping it would
+hide true topology) with a `target_id` that has no matching node, plus a
+`CollectionWarning` explaining why. A missing node is never treated as "no
+relationship exists" — see [docs/security.md](security.md) for why
+silently-fabricated emptiness is explicitly disallowed.
+
+**Bounded fan-out.** AWS has no batch API for a handful of per-item
+enrichments this milestone supports: DNS attributes per VPC, prefix list
+entries per prefix list, and target health per target group. Each is
+opt-in (an `include_*` tool parameter, default `false`) and, when
+requested, capped at `Settings.max_fanout_calls` (default 50) — items
+beyond the cap are skipped with a `CollectionWarning` rather than making
+an unbounded number of AWS calls or silently truncating without
+explanation. `aws/collection.py`'s `track_calls()` context manager counts
+every underlying AWS request made during topology assembly (each page of
+a paginated call counts separately) and surfaces it as
+`VpcTopology.api_call_count`, so a caller can reason about the cost of one
+`aws_get_vpc_topology` invocation.
 
 ## Multi-cloud compatibility
 
