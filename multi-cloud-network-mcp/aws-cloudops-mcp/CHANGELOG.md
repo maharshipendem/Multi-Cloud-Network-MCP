@@ -5,6 +5,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - Milestone 3 - Transit, Hybrid Connectivity, and DNS
+
+### Added
+
+- Twenty-eight new read-only MCP tools covering transit, hybrid
+  connectivity, and DNS: Transit Gateway (`aws_list_transit_gateways`,
+  `aws_list_transit_gateway_attachments`,
+  `aws_list_transit_gateway_route_tables` with opt-in
+  associations/propagations, `aws_search_transit_gateway_routes`);
+  Site-to-Site VPN (`aws_list_vpn_connections`, `aws_list_customer_gateways`,
+  `aws_list_vpn_gateways`); Direct Connect
+  (`aws_list_direct_connect_connections`, `aws_list_direct_connect_lags`,
+  `aws_list_direct_connect_virtual_interfaces`,
+  `aws_list_direct_connect_gateways` with opt-in associations); DNS
+  (`aws_list_hosted_zones`, `aws_list_resource_record_sets`,
+  `aws_list_resolver_endpoints`, `aws_list_resolver_rules` with opt-in
+  associations, `aws_list_resolver_rule_associations`,
+  `aws_list_resolver_query_log_configs`, `aws_list_dns_firewall_rule_groups`,
+  `aws_list_dns_firewall_rule_group_associations`); Network Manager / Cloud
+  WAN (`aws_list_core_networks` with opt-in details/policy,
+  `aws_list_global_networks`, `aws_list_network_manager_sites`,
+  `aws_list_network_manager_devices`, `aws_list_network_manager_links`,
+  `aws_list_network_manager_connections`,
+  `aws_list_transit_gateway_registrations`); Flow Logs
+  (`aws_list_flow_logs`, configuration/delivery metadata only, never log
+  contents); and `aws_get_hybrid_topology` — joins VPC, Transit Gateway,
+  VPN, Direct Connect, and DNS into a typed node/edge graph anchored on
+  one Transit Gateway, with an explicit `external_endpoint` node type for
+  labeled non-AWS boundaries (e.g. a customer gateway's public IP),
+  cross-account attachment warnings, and out-of-scope attachment-type
+  warnings.
+- `AwsResource` (the base model every record extends) gained four
+  additive optional fields: `scope` (`"regional"`/`"global"`),
+  `source_api`, `collection_completeness` (`"complete"`/`"partial"`), and
+  `redacted` — all backward compatible with Milestone 1/2 consumers since
+  every field is optional with a default.
+- `security.guardrails.READ_ONLY_PREFIXES` gained a `search_` prefix
+  (with `ec2:SearchTransitGatewayRoutes` added to `READ_ONLY_ACTIONS`)
+  for the one genuinely read-only AWS operation in this milestone that
+  doesn't follow the `describe_`/`get_`/`list_` naming convention.
+- Redaction-by-omission for VPN pre-shared keys and Direct Connect BGP
+  authentication keys: neither field is ever read from the raw AWS API
+  response, and every affected record is stamped `redacted: true`. See
+  [docs/security.md](docs/security.md#redaction-and-size-limits).
+
+### Changed
+
+- Nothing in Milestone 1/2's tool contracts changed. All Milestone 3
+  additions are new tools and additive optional model fields.
+
 ## [0.2.0] - Milestone 2 - VPC Topology
 
 ### Added

@@ -153,6 +153,90 @@ source) and VPC endpoint policy documents (IAM JSON, potentially large).
   hybrid-connectivity milestone adds VPN visibility, will need the same
   redaction treatment before being surfaced).
 
+Milestone 3 adds exactly the hybrid-connectivity visibility anticipated
+above, and with it two fields that must never reach an MCP client:
+
+- **VPN pre-shared keys** (`aws_list_vpn_connections`): AWS's
+  `ec2:DescribeVpnConnections` response embeds the tunnels' pre-shared
+  keys inside the `CustomerGatewayConfiguration` XML field. `aws/vpn.py`
+  never reads that field at all — not a regex scrub, not a
+  post-processing strip, but simply never parsed out of the raw response
+  in the first place. This is **redaction by omission**, chosen
+  deliberately over redaction by scrubbing: a scrub can miss an encoding
+  variant or a future AWS response-format change; a field that is never
+  read cannot leak regardless of what the raw response contains. Every
+  `VpnConnection` record is stamped `redacted: true` so a client can tell
+  the record is intentionally incomplete rather than assume it saw
+  everything. `tests/unit/test_vpn.py::test_vpn_connection_never_leaks_pre_shared_key`
+  creates a real VPN connection via moto (which generates and embeds a
+  real PSK in its response, exactly like AWS), then asserts the literal
+  secret string does not appear anywhere in the serialized model output.
+- **Direct Connect BGP authentication keys**
+  (`aws_list_direct_connect_virtual_interfaces`): the same omission
+  pattern applies to `directconnect:DescribeVirtualInterfaces`'s
+  `authKey` field (present both at the top level and per BGP peer) and
+  `customerRouterConfig` (which embeds the same key inside generated
+  router-config text). Neither is ever read from the raw response. Every
+  `VirtualInterface` record is stamped `redacted: true`, the same
+  convention `VpnConnection` uses.
+  `tests/unit/test_directconnect.py::test_direct_connect_virtual_interface_never_leaks_auth_key`
+  stubs a response containing both secrets (moto does not implement this
+  operation) and asserts neither appears in serialized output.
+- **VPC Flow Logs** (`aws_list_flow_logs`): returns configuration and
+  delivery metadata only — log group/destination ARN, traffic type,
+  aggregation interval, format, status. There is no field anywhere in
+  `FlowLogConfig` that could hold a log record, and no code path in
+  `aws/flowlogs.py` calls a CloudWatch Logs or S3 read API to fetch one;
+  this is a scope boundary (the milestone explicitly excludes log
+  contents), not a filtered field.
+  `tests/unit/test_flowlogs.py::test_list_flow_logs_never_exposes_log_contents`
+  asserts this at the schema level — no field name containing "content"
+  or "record" — rather than only checking one fixture's data, since a
+  future field addition could otherwise silently reintroduce the gap.
+- **Route 53 Resolver query logs** (`aws_list_resolver_query_log_configs`):
+  same principle as flow logs — returns the log configuration
+  (destination ARN, association count, status) only, never queried DNS
+  record contents. Route 53 Resolver has no API that would even return
+  per-query records to this tool; the boundary here is "never add a tool
+  that would."
+- **DNS Firewall** (`aws_list_dns_firewall_rule_groups`,
+  `aws_list_dns_firewall_rule_group_associations`): a separately
+  permissioned capability within the Resolver API — the milestone asks
+  for it "where allowed." A denied call degrades to an empty list plus an
+  `ACCESS_DENIED` `CollectionWarning` rather than failing the tool call
+  outright, the same best-effort pattern Milestone 2 established for
+  optional per-item enrichments.
+- **Cloud WAN core network policies** (`aws_list_core_networks` with
+  `include_policy: true`): reuses Milestone 2's VPC-endpoint-policy size
+  guard (`MAX_POLICY_DOCUMENT_CHARS`, `policy_document_truncated`) — a
+  size limit, not a secrecy claim, since the account already has direct
+  visibility into policies it owns via the Cloud WAN console/API. When
+  the account/SDK doesn't support `GetCoreNetworkPolicy` at all, the
+  affected core network's `collection_completeness` is set to
+  `"partial"` with an explicit `UNSUPPORTED_CAPABILITY` warning instead
+  of silently returning an empty policy that could be mistaken for "this
+  core network has no policy."
+
+## No reachability claims
+
+`aws_get_hybrid_topology` (and `aws_get_vpc_topology` before it) returns a
+**configuration and attachment graph**, never a reachability analysis.
+Every edge carries `evidence` — a specific AWS API field observation
+(a route table entry, an attachment's resource ID, a hosted zone's linked
+VPC) — and nothing in this codebase evaluates route table contents,
+security group rules, NACLs, or VPN/DX tunnel state to determine whether
+traffic can actually flow between two nodes. A VPC attachment on a
+Transit Gateway proves the attachment exists; it does not prove packets
+can cross it — that also depends on route table propagation, security
+group and NACL rules, and (for VPN/DX) tunnel/BGP state, none of which
+this tool inspects together to produce a reachability verdict. A client
+consuming this graph must not present it as "X can reach Y" without
+independently verifying the routing, security, and tunnel state that
+would actually determine that. This mirrors AWS's own
+[Reachability Analyzer](https://docs.aws.amazon.com/vpc/latest/reachability/)
+positioning: reachability analysis is a distinct capability from topology
+visibility, and this server does not claim to provide it.
+
 ## Error handling
 
 AWS/botocore errors are translated into a stable, client-safe error type
