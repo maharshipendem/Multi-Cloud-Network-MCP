@@ -127,6 +127,32 @@ credential files. CI/deployment pipelines should inject credentials via
 their platform's secret manager (or, preferably, IAM roles / OIDC federation
 requiring no static secret at all) rather than environment files.
 
+## Redaction and size limits
+
+Milestone 2 adds two resource types whose raw AWS API responses can carry
+large or sensitive-shaped content: security group rule descriptions (free
+text, but attacker-influenceable if descriptions come from an untrusted
+source) and VPC endpoint policy documents (IAM JSON, potentially large).
+
+- **VPC endpoint policies** (`aws_list_vpc_endpoints`): omitted entirely
+  unless the caller passes `include_policies: true`. Even then, any
+  document over `MAX_POLICY_DOCUMENT_CHARS` (8000) is truncated, with
+  `policy_document_truncated: true` on the record so a client can tell the
+  document was cut rather than assume it's complete. This is a size guard
+  against an oversized policy blowing up a tool response, not a claim that
+  policy contents are secret — the account already has direct IAM/console
+  visibility into any policy it owns.
+- **Managed prefix list entries** and **target health** are similarly
+  opt-in (`include_entries`/`include_target_health`) and bounded by
+  `Settings.max_fanout_calls`, since each requires one AWS API call per
+  item with no batch equivalent — see
+  [docs/architecture.md](architecture.md#bounded-fan-out).
+- Nothing in Milestone 2 retrieves credentials, pre-shared keys,
+  passwords, or private key material — no AWS API surfaced by this
+  milestone's tools returns any (VPN tunnel pre-shared keys, if a future
+  hybrid-connectivity milestone adds VPN visibility, will need the same
+  redaction treatment before being surfaced).
+
 ## Error handling
 
 AWS/botocore errors are translated into a stable, client-safe error type

@@ -5,7 +5,12 @@ import pytest
 from moto import mock_aws
 
 from aws_cloudops_mcp.aws.client_factory import ClientFactory
-from aws_cloudops_mcp.aws.networking import list_route_tables, list_subnets, list_vpcs
+from aws_cloudops_mcp.aws.networking import (
+    _normalize_route,
+    list_route_tables,
+    list_subnets,
+    list_vpcs,
+)
 from aws_cloudops_mcp.exceptions import InvalidRegionError
 
 
@@ -122,3 +127,49 @@ def test_list_route_tables_normalizes_routes_and_associations(
     assert match.vpc_id == ec2_resources["vpc_id"]
     assert match.account_id == "123456789012"
     assert match.observed_at
+
+
+def test_normalize_route_preserves_blackhole_state() -> None:
+    """moto does not simulate AWS transitioning a route to State=blackhole
+    when its target is deleted, so this exercises the normalizer directly
+    against a synthetic raw route shaped like AWS's real blackhole output."""
+    route = _normalize_route(
+        {
+            "DestinationCidrBlock": "10.1.0.0/16",
+            "VpcPeeringConnectionId": "pcx-0123456789abcdef0",
+            "Origin": "CreateRoute",
+            "State": "blackhole",
+        }
+    )
+    assert route.state == "blackhole"
+    assert route.target == "pcx-0123456789abcdef0"
+    assert route.target_type == "vpc_peering_connection"
+    assert route.is_propagated is False
+
+
+def test_normalize_route_marks_propagated_routes() -> None:
+    route = _normalize_route(
+        {
+            "DestinationCidrBlock": "192.168.0.0/16",
+            "GatewayId": "vgw-0123456789abcdef0",
+            "Origin": "EnableVgwRoutePropagation",
+            "State": "active",
+        }
+    )
+    assert route.is_propagated is True
+    assert route.origin == "EnableVgwRoutePropagation"
+
+
+def test_normalize_route_prefix_list_destination() -> None:
+    route = _normalize_route(
+        {
+            "DestinationPrefixListId": "pl-0123456789abcdef0",
+            "NatGatewayId": "nat-0123456789abcdef0",
+            "Origin": "CreateRoute",
+            "State": "active",
+        }
+    )
+    assert route.destination_prefix_list_id == "pl-0123456789abcdef0"
+    assert route.destination_cidr_block is None
+    assert route.target == "nat-0123456789abcdef0"
+    assert route.target_type == "nat_gateway"

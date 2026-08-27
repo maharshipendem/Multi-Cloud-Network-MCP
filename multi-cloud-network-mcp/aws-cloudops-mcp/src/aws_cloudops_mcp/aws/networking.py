@@ -33,8 +33,12 @@ if TYPE_CHECKING:
     from aws_cloudops_mcp.aws.client_factory import ClientFactory
 
 # Maps a Route's AWS target field to a normalized (target, target_type) pair.
+# GatewayId is deliberately excluded here: AWS reuses that one field for
+# three different resource types (an internet gateway, a virtual private
+# gateway, or the literal string "local"), so it needs prefix-based
+# disambiguation instead of a fixed field->type mapping -- see
+# _classify_gateway_id below.
 _ROUTE_TARGET_FIELDS: tuple[tuple[str, str], ...] = (
-    ("GatewayId", "gateway"),
     ("NatGatewayId", "nat_gateway"),
     ("TransitGatewayId", "transit_gateway"),
     ("VpcPeeringConnectionId", "vpc_peering_connection"),
@@ -47,13 +51,30 @@ _ROUTE_TARGET_FIELDS: tuple[tuple[str, str], ...] = (
 )
 
 
+def _classify_gateway_id(gateway_id: str) -> str:
+    """AWS's ``GatewayId`` route field holds an internet gateway ID
+    (``igw-...``), a virtual private gateway ID (``vgw-...``), or the
+    literal string ``"local"``. Only internet gateways have a collector
+    (and therefore a topology node) in this milestone; VPN/Direct Connect
+    hybrid connectivity is explicitly out of scope."""
+    if gateway_id == "local":
+        return "local"
+    if gateway_id.startswith("vgw-"):
+        return "virtual_private_gateway"
+    return "gateway"
+
+
 def _normalize_route(raw: dict[str, Any]) -> Route:
     target: str | None = None
     target_type: str | None = None
-    for field, ttype in _ROUTE_TARGET_FIELDS:
-        if raw.get(field):
-            target, target_type = raw[field], ttype
-            break
+    gateway_id = raw.get("GatewayId")
+    if gateway_id:
+        target, target_type = gateway_id, _classify_gateway_id(gateway_id)
+    else:
+        for field, ttype in _ROUTE_TARGET_FIELDS:
+            if raw.get(field):
+                target, target_type = raw[field], ttype
+                break
     return Route(
         destination_cidr_block=raw.get("DestinationCidrBlock"),
         destination_ipv6_cidr_block=raw.get("DestinationIpv6CidrBlock"),

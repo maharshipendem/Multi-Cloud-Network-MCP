@@ -33,9 +33,7 @@ def eni_fixture(client_factory: ClientFactory) -> dict[str, str]:
 def test_list_network_interfaces_normalizes_fields(
     client_factory: ClientFactory, eni_fixture: dict[str, str]
 ) -> None:
-    enis = list_network_interfaces(
-        client_factory, region="us-east-1", vpc_id=eni_fixture["vpc_id"]
-    )
+    enis = list_network_interfaces(client_factory, region="us-east-1", vpc_id=eni_fixture["vpc_id"])
     match = next(e for e in enis if e.network_interface_id == eni_fixture["eni_id"])
 
     assert match.subnet_id == eni_fixture["subnet_id"]

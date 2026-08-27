@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aws-cloudops-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Production-quality, read-only Model Context Protocol (MCP) server for AWS cloud and network operations."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -41,7 +41,7 @@ dev = [
 aws-cloudops-mcp = "aws_cloudops_mcp.server:main"
 
 [project.urls]
-Homepage = "https://github.com/example/aws-cloudops-mcp"
+Homepage = "https://github.com/maharshipendem/Multi-Cloud-Network-MCP/tree/main/multi-cloud-network-mcp/aws-cloudops-mcp"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aws_cloudops_mcp"]
