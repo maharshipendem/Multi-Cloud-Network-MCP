@@ -12,10 +12,11 @@ contains **only** AWS functionality.
 
 ## Current milestone
 
-**Milestone 3 — Transit, Hybrid Connectivity, and DNS (read-only).** See
-[MILESTONE1_STATUS.md](MILESTONE1_STATUS.md),
-[MILESTONE2_STATUS.md](MILESTONE2_STATUS.md), and
-[MILESTONE3_STATUS.md](MILESTONE3_STATUS.md) for detailed status reports.
+**Milestone 4 — Network Diagnostics and Explainable Analysis (read-only).**
+See [MILESTONE1_STATUS.md](MILESTONE1_STATUS.md),
+[MILESTONE2_STATUS.md](MILESTONE2_STATUS.md),
+[MILESTONE3_STATUS.md](MILESTONE3_STATUS.md), and
+[MILESTONE4_STATUS.md](MILESTONE4_STATUS.md) for detailed status reports.
 
 Implemented:
 
@@ -26,7 +27,15 @@ Implemented:
   cross-account `sts:AssumeRole`
 - Structured JSON logging with per-request correlation IDs
 - A read-only security guardrail layer, independent of IAM
-- Forty-five MCP tools (see [docs/tools.md](docs/tools.md)):
+- A deterministic, boto3-independent network diagnostics engine
+  (`aws_cloudops_mcp.diagnostics`) -- route resolution, security group/
+  NACL evaluation, internet exposure analysis, and consistency checks,
+  each producing evidence-backed findings with explicit severity/
+  confidence (including a first-class `"indeterminate"` value for
+  incomplete data) rather than an LLM judgment call. Runs equally well
+  against a live AWS snapshot or a saved offline fixture -- see
+  [fixtures/demo_network_snapshot.json](fixtures/demo_network_snapshot.json).
+- Fifty-three MCP tools (see [docs/tools.md](docs/tools.md)):
   - `aws_get_caller_identity`, `aws_list_regions`
   - `aws_list_vpcs`, `aws_list_subnets`, `aws_list_route_tables`
   - `aws_list_internet_gateways`, `aws_list_egress_only_internet_gateways`,
@@ -60,6 +69,20 @@ Implemented:
     contents
   - `aws_get_hybrid_topology` — joins VPC/TGW/VPN/DX/DNS into a typed
     node/edge graph anchored on one Transit Gateway
+  - `aws_explain_network_path` — deterministic route resolution (longest-
+    prefix match across NAT/peering/TGW/gateway/endpoint/blackhole
+    targets) combined with security group and NACL evaluation
+  - `aws_find_network_risks` — CIDR overlap, orphaned/unpropagated
+    Transit Gateway attachments, asymmetric peering routes, degraded
+    resource states, and internet-exposed ENIs/load balancers
+  - `aws_get_network_health` — degraded resource states, Flow Log
+    coverage gaps, plus opt-in bounded CloudWatch metrics, Reachability
+    Analyzer results, and recent CloudTrail network-configuration events
+  - `aws_list_network_insights_paths`, `aws_list_network_insights_analyses`,
+    `aws_list_network_insights_access_scopes`,
+    `aws_list_network_insights_access_scope_analyses`,
+    `aws_get_network_insights_access_scope_analysis_findings` — read-only
+    Reachability Analyzer / Network Access Analyzer result retrieval
 - Every AWS record carries `account_id`/`region`/`tags`/`observed_at`;
   optional per-item enrichment (DNS attributes, prefix list entries,
   target health, TGW route table associations/propagations, DNS resolver
@@ -74,9 +97,10 @@ Implemented:
   `botocore.stub.Stubber`) and an opt-in integration test suite
 - Docker image and docker-compose for local development
 
-Not implemented yet (by design — see [Roadmap](#roadmap)): CloudWatch/
-CloudTrail, AWS Config, cross-account discovery, path/reachability
-analysis, Aviatrix integration, or any infrastructure-**mutating**
+Not implemented yet (by design — see [Roadmap](#roadmap)): AWS Config,
+cross-account discovery, network troubleshooting runbook automation,
+Aviatrix integration, creating/starting any Reachability Analyzer or
+Network Access Analyzer path/analysis, or any infrastructure-**mutating**
 capability.
 
 ## Architecture
@@ -238,12 +262,11 @@ See [docs/development.md](docs/development.md) for details.
 ## Roadmap
 
 Future AWS MCP milestones (not implemented here, but the architecture is
-designed to accommodate them without a rewrite): Network Firewall,
-CloudWatch, CloudTrail, AWS Config, Reachability Analyzer, AWS
-Organizations / multi-account discovery, path analysis, network
-troubleshooting, and Aviatrix integration. A multi-cloud federation/
-orchestration layer sitting above the AWS/Azure/GCP MCP servers is
-planned as a separate project.
+designed to accommodate them without a rewrite): Network Firewall, AWS
+Config, AWS Organizations / multi-account discovery, deeper network
+troubleshooting runbooks, and Aviatrix integration. A multi-cloud
+federation/orchestration layer sitting above the AWS/Azure/GCP MCP
+servers is planned as a separate project.
 
 ## License
 

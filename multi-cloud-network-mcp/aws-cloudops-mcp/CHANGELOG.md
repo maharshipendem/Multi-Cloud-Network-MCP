@@ -5,6 +5,67 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - Milestone 4 - Network Diagnostics and Explainable Analysis
+
+### Added
+
+- A new, boto3/MCP-transport-independent diagnostics engine
+  (`aws_cloudops_mcp.diagnostics`): deterministic route resolution
+  (longest-prefix match across local/NAT/peering/TGW/gateway/endpoint/
+  blackhole targets, AWS's static-over-propagated tie-break),
+  security group (stateful, initiating-direction-only) and network ACL
+  (stateless, all four legs including the ephemeral-port return path)
+  evaluation, internet exposure analysis (distinguishing potential
+  exposure from proven reachability), and consistency checks (CIDR
+  overlap, orphaned/unpropagated Transit Gateway attachments,
+  asymmetric VPC peering routes, degraded/failed resource states).
+  Every conclusion is a `Finding` (rule ID + version, severity,
+  confidence, summary, affected resources, evidence, reasoning steps,
+  assumptions, limitations, freshness, advisory-only remediation);
+  `confidence: "indeterminate"` is a first-class outcome when required
+  evidence is missing, never an omission.
+- `aws_explain_network_path`, `aws_find_network_risks`, and
+  `aws_get_network_health` — the three tools built on the diagnostics
+  engine, plus five read-only Reachability Analyzer / Network Access
+  Analyzer result-retrieval tools
+  (`aws_list_network_insights_paths`, `aws_list_network_insights_analyses`,
+  `aws_list_network_insights_access_scopes`,
+  `aws_list_network_insights_access_scope_analyses`,
+  `aws_get_network_insights_access_scope_analysis_findings`). None of
+  these create a path, analysis, scope, or scope analysis.
+- `aws/snapshot.py::collect_network_snapshot` — the single seam bridging
+  live AWS calls to the diagnostics engine, reusing every Milestone 1-3
+  service-layer function with no new AWS API surface of its own.
+- `diagnostics/offline.py` — an offline dry-run mode: load a saved,
+  sanitized snapshot JSON file and run the exact same diagnostics
+  functions against it, with zero AWS calls. See
+  `fixtures/demo_network_snapshot.json` for a hand-built demo fixture
+  reproducing several findings at once.
+- Bounded, opt-in CloudWatch metric queries (`aws/network_metrics.py`,
+  a fixed catalog of network-relevant metrics per resource type) and
+  CloudTrail network-configuration event lookup (`aws/cloudtrail.py`,
+  capped lookback window and result count, metadata-only -- never the
+  raw event payload).
+- `security.guardrails.READ_ONLY_PREFIXES` gained a `lookup_` prefix
+  (with `cloudtrail:LookupEvents` added to `READ_ONLY_ACTIONS`) for the
+  one genuinely read-only CloudTrail operation this milestone calls
+  that doesn't follow the describe/get/list/search naming convention.
+
+### Changed
+
+- Fixed a route-target classification bug in `aws/networking.py`
+  (present since Milestone 2): AWS reuses the `GatewayId` route field a
+  third way, for Gateway-type VPC endpoints (`vpce-...`, paired with a
+  `DestinationPrefixListId`) — previously misclassified as a plain
+  `"gateway"` (implying an internet gateway). Now correctly classified
+  as `"vpc_endpoint"`; `aws/topology.py`'s in-scope route target set
+  updated to match, with no change to `aws_get_vpc_topology`'s node/edge
+  output for accounts using Gateway endpoints (the endpoint node already
+  existed independently of this classification).
+- Nothing in Milestone 1-3's tool contracts changed otherwise. All other
+  Milestone 4 additions are new tools and additive optional model
+  fields.
+
 ## [0.3.0] - Milestone 3 - Transit, Hybrid Connectivity, and DNS
 
 ### Added

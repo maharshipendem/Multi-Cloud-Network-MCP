@@ -2618,11 +2618,766 @@ this tool, matching `aws_get_vpc_topology`).
 
 ---
 
+## `aws_explain_network_path`
+
+**Purpose:** Explain whether traffic from a source (subnet, ENI, or IP) can
+reach a destination IP/CIDR: deterministic route resolution (longest-prefix
+match across local/NAT/peering/TGW/gateway/endpoint/blackhole targets)
+combined with security group (stateful) and network ACL (stateless, all
+four legs) evaluation where enough information is given to evaluate them.
+Every conclusion carries severity, confidence, evidence, and reasoning
+steps; when required evidence is missing, the result says indeterminate
+rather than guessing. Never claims certainty from incomplete data and
+never changes any AWS configuration.
+
+**AWS API:** Builds on the same read-only snapshot collection as
+`aws_get_vpc_topology` -- `ec2:DescribeVpcs`, `DescribeSubnets`,
+`DescribeRouteTables`, `DescribeSecurityGroups`,
+`DescribeSecurityGroupRules`, `DescribeNetworkAcls`,
+`DescribeNetworkInterfaces`, `DescribeInternetGateways`,
+`DescribeEgressOnlyInternetGateways`, `DescribeNatGateways`,
+`DescribeVpcPeeringConnections`, `DescribeVpcEndpoints`,
+`DescribeManagedPrefixLists` + `GetManagedPrefixListEntries` (only for
+prefix lists actually referenced by a collected route), plus
+`elasticloadbalancing:DescribeLoadBalancers`/`DescribeListeners`/
+`DescribeTargetGroups`/`DescribeTags` -- collected region-wide in one pass
+(then filtered client-side), not once per source/destination pair. When
+`include_transit_gateway: true`, also `ec2:DescribeTransitGateways`,
+`DescribeTransitGatewayAttachments`, `DescribeTransitGatewayRouteTables`,
+`GetTransitGatewayRouteTableAssociations`,
+`GetTransitGatewayRouteTablePropagations`, `SearchTransitGatewayRoutes`.
+No AWS API call this tool makes is new relative to Milestones 1-3 -- the
+diagnostics engine itself never imports boto3; it reasons entirely from
+the already-collected, normalized snapshot.
+
+**Required IAM permission:** the union of the actions above -- all already
+covered by the Milestone 1-3 policy (see
+[Example IAM policy](#example-iam-policy) below); this tool needs no new
+EC2/ELB permissions.
+
+**Input:**
+
+```json
+{
+  "region": "us-east-1",
+  "destination": "198.51.100.10",
+  "source_subnet_id": "subnet-0123456789abcdef0",
+  "protocol": "tcp",
+  "port": 443,
+  "include_transit_gateway": false
+}
+```
+
+`destination` (an IP address or CIDR block) and `region` are required.
+Exactly one of `source_subnet_id`, `source_eni_id`, or (`source_ip` +
+`vpc_id`) must identify the source; if more than one is given,
+`source_eni_id` wins, then `source_subnet_id`, then `source_ip`+`vpc_id`.
+`destination_eni_id`/`destination_ip` are optional and enable security
+group/NACL evaluation on the destination side when known.  `protocol`
+defaults to `"tcp"`; `port` is optional but required for network ACL
+evaluation. `include_transit_gateway` is opt-in and adds the Transit
+Gateway API calls above so a path routed through a TGW can be resolved.
+
+**Output (`data`):**
+
+A `PathExplanation`:
+
+```json
+{
+  "overall_verdict": "partially_evaluated",
+  "route_verdict": "routable",
+  "hops": [
+    {
+      "hop_number": 1,
+      "vpc_id": "vpc-0123456789abcdef0",
+      "location_id": "subnet-0123456789abcdef0",
+      "route_table_id": "rtb-0123456789abcdef0",
+      "matched_route": {
+        "destination_cidr_block": "0.0.0.0/0",
+        "destination_prefix_list_id": null,
+        "target": "igw-0123456789abcdef0",
+        "target_type": "gateway",
+        "state": "active",
+        "origin": "CreateRoute"
+      },
+      "target_type": "gateway",
+      "description": "Matched route to gateway:igw-0123456789abcdef0."
+    }
+  ],
+  "findings": [
+    {
+      "rule_id": "ROUTE-001",
+      "rule_version": "1.0.0",
+      "severity": "info",
+      "confidence": "high",
+      "summary": "Path terminates via gateway:igw-0123456789abcdef0.",
+      "affected_resources": ["igw-0123456789abcdef0"],
+      "evidence": [
+        {
+          "source": "subnet:subnet-0123456789abcdef0",
+          "detail": "VpcId=vpc-0123456789abcdef0 CidrBlock=10.0.1.0/24"
+        },
+        {
+          "source": "route_table:rtb-0123456789abcdef0",
+          "detail": "0.0.0.0/0 -> gateway:igw-0123456789abcdef0 (state=active, origin=CreateRoute)"
+        }
+      ],
+      "reasoning": [
+        {
+          "step": 1,
+          "description": "Resolved source to subnet subnet-0123456789abcdef0 in VPC vpc-0123456789abcdef0.",
+          "evidence_indices": [0]
+        },
+        {
+          "step": 2,
+          "description": "Longest-prefix match in rtb-0123456789abcdef0: 0.0.0.0/0 -> gateway:igw-0123456789abcdef0.",
+          "evidence_indices": [1]
+        }
+      ],
+      "assumptions": [],
+      "limitations": [
+        "security group evaluation skipped: no source ENI could be resolved (pass source_eni_id, or a source_ip matching a known ENI)",
+        "network ACL evaluation skipped: requires a same-VPC path with concrete source_ip, destination_ip, and port"
+      ],
+      "freshness": "2026-08-27T18:00:00+00:00",
+      "remediation": null
+    }
+  ]
+}
+```
+
+`route_verdict` is the routing-layer-only verdict from longest-prefix-match
+resolution: `routable`, `blocked_at_routing`, `left_analyzed_scope`,
+`unresolved_target`, or `indeterminate`. `overall_verdict` additionally
+folds in security group and NACL evaluation: `allowed`, `blocked`,
+`partially_evaluated`, or `indeterminate` -- `blocked` if routing itself
+fails or a security group/NACL evaluation finds a deny; `partially_evaluated`
+if routing succeeds but a required evaluation was skipped (as in the
+example above) or a run evaluation itself came back `confidence:
+"indeterminate"`; `allowed` only when routing succeeds and every
+evaluation that ran found no deny.
+
+`findings` always includes the `ROUTE-001` route-resolution finding, plus
+a `SEC-001` (security group) finding whenever a source ENI can be resolved
+(directly from `source_eni_id`, or by matching `source_ip` against a
+collected ENI's private/public IP), plus a `SEC-002` (network ACL) finding
+whenever the path stays within one VPC (the last hop's `target_type` is
+`local`) and concrete `source_ip`, `destination_ip`, and `port` were all
+given.
+
+**`confidence` can legitimately be `"indeterminate"`** on any finding this
+tool returns -- this is a first-class, expected outcome when required
+evidence is missing (an unresolvable prefix-list route, a peer VPC or
+Transit Gateway target outside the collected snapshot, a routing cycle),
+never an error and never hidden as one. Separately, when security-group or
+network-ACL evaluation is **skipped outright** -- not run at all, as
+opposed to run and indeterminate -- because the tool lacks enough
+information to run it (no source ENI is resolvable, or the path leaves
+the VPC before a known destination subnet is reached), that is always
+recorded as an explicit `limitations` entry on the route finding, exactly
+as shown above; it is never silently treated as "allowed." `remediation`,
+when present, is always advisory text for a human to read and act on --
+nothing in this tool, or anywhere in this codebase, executes it.
+
+**Example request:**
+
+```json
+{ "tool": "aws_explain_network_path", "input": { "region": "us-east-1", "destination": "198.51.100.10", "source_subnet_id": "subnet-0123456789abcdef0", "protocol": "tcp", "port": 443 } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope (a single object, not a list -- `metadata.count` is not set for
+this tool).
+
+---
+
+## `aws_find_network_risks`
+
+**Purpose:** Scan a region (optionally scoped to specific VPCs) for
+network misconfigurations: CIDR overlap, orphaned/unpropagated Transit
+Gateway attachments, asymmetric VPC peering routes, degraded/failed
+resource states, and internet-exposed ENIs/load balancers (distinguishing
+potential exposure from proven reachability). Returns every finding
+checked, including informational ones, unless `min_severity` filters them
+out -- "not evaluated" never looks the same as "checked, nothing found."
+Read-only; never modifies any resource.
+
+**AWS API:** The same core snapshot collection as `aws_explain_network_path`
+above (`ec2:DescribeVpcs`/`DescribeSubnets`/`DescribeRouteTables`/
+`DescribeSecurityGroups`/`DescribeSecurityGroupRules`/`DescribeNetworkAcls`/
+`DescribeNetworkInterfaces`/`DescribeInternetGateways`/
+`DescribeEgressOnlyInternetGateways`/`DescribeNatGateways`/
+`DescribeVpcPeeringConnections`/`DescribeVpcEndpoints`/
+`DescribeManagedPrefixLists`+`GetManagedPrefixListEntries`,
+`elasticloadbalancing:DescribeLoadBalancers`/`DescribeListeners`/
+`DescribeTargetGroups`/`DescribeTags`), plus the same opt-in Transit
+Gateway calls when `include_transit_gateway: true`. No AWS API call here
+is new relative to Milestones 1-3.
+
+**Required IAM permission:** the union of the actions above -- already
+covered by the Milestone 1-3 policy; this tool needs no new permissions.
+
+**Input:**
+
+```json
+{
+  "region": "us-east-1",
+  "vpc_ids": ["vpc-0123456789abcdef0"],
+  "min_severity": "medium",
+  "include_transit_gateway": false
+}
+```
+
+`vpc_ids` restricts the scan to specific VPCs; omit for the whole region.
+`min_severity` (one of `critical`, `high`, `medium`, `low`, `info`) drops
+findings less severe than the threshold from the returned list; omit it
+to get every finding, including informational "checked, nothing found"
+ones. `include_transit_gateway` is opt-in and adds Transit Gateway
+attachment/route-table collection so the TGW-related rules (`CONSIST-002`,
+`CONSIST-003`) can run.
+
+**Rule catalog** -- the full set of rules the diagnostics engine
+registers. This tool always runs every rule marked "risk scan" below
+unconditionally (not individually selectable); the `ROUTE-*`/`SEC-*`
+rules only ever run inside `aws_explain_network_path`, not here:
+
+| rule_id | title | default_severity | runs in |
+| --- | --- | --- | --- |
+| `CONSIST-001` | CIDR overlap | `high` | risk scan |
+| `CONSIST-002` | Orphaned Transit Gateway attachment | `medium` | risk scan |
+| `CONSIST-003` | Missing Transit Gateway route propagation | `low` | risk scan |
+| `CONSIST-004` | Asymmetric VPC peering route | `high` | risk scan |
+| `CONSIST-005` | Degraded or failed resource state | `high` | risk scan |
+| `EXPOSE-001` | ENI internet exposure | `medium` | risk scan |
+| `EXPOSE-002` | Load balancer internet exposure | `medium` | risk scan |
+| `ROUTE-001` | Route resolution | `info` | `aws_explain_network_path` only |
+| `SEC-001` | Security group evaluation | `info` | `aws_explain_network_path` only |
+| `SEC-002` | Network ACL evaluation | `info` | `aws_explain_network_path` only |
+
+Every ENI and every load balancer in the scanned scope is checked by
+`EXPOSE-001`/`EXPOSE-002`, including ones with nothing wrong -- an `info`
+finding, not an omission -- so "checked, nothing found" never looks like
+"not checked."
+
+**Output (`data`):** a plain list of `Finding`, deterministically sorted
+by `(severity, rule_id, first affected_resources entry)` so repeated runs
+against the same snapshot always produce the same order:
+
+```json
+[
+  {
+    "rule_id": "EXPOSE-001",
+    "rule_version": "1.0.0",
+    "severity": "critical",
+    "confidence": "high",
+    "summary": "eni-0123456789abcdef0 is reachable from the public internet: it has a public IP, a route to an internet gateway, and a security group/NACL that permit inbound traffic on tcp:22-22.",
+    "affected_resources": ["eni-0123456789abcdef0"],
+    "evidence": [
+      { "source": "network_interface:eni-0123456789abcdef0", "detail": "PublicIp=203.0.113.44" },
+      { "source": "subnet:subnet-0123456789abcdef0", "detail": "has active route to an internet gateway: True" },
+      { "source": "network_interface:eni-0123456789abcdef0", "detail": "security group ingress open to 0.0.0.0/0 or ::/0: tcp:22-22" },
+      { "source": "subnet:subnet-0123456789abcdef0", "detail": "NACL permits inbound from 0.0.0.0/0 or ::/0: True" }
+    ],
+    "reasoning": [
+      {
+        "step": 1,
+        "description": "has_public_ip=True, has_public_route=True, open_sg_ingress_rules=1, nacl_allows_inbound=True.",
+        "evidence_indices": [0, 1, 2, 3]
+      }
+    ],
+    "assumptions": [],
+    "limitations": [],
+    "freshness": "2026-08-27T18:00:00+00:00",
+    "remediation": "Restrict the security group ingress rule to a specific known CIDR, or remove the public IP/route if this resource is not meant to be internet-facing."
+  },
+  {
+    "rule_id": "CONSIST-003",
+    "rule_version": "1.0.0",
+    "severity": "low",
+    "confidence": "medium",
+    "summary": "Attachment tgw-attach-0123456789abcdef0 (vpc:vpc-0123456789abcdef0) is associated but has no route propagation into any route table.",
+    "affected_resources": ["tgw-attach-0123456789abcdef0"],
+    "evidence": [
+      { "source": "transit_gateway_attachment:tgw-attach-0123456789abcdef0", "detail": "associated, not propagated" }
+    ],
+    "reasoning": [
+      { "step": 1, "description": "No propagation found in any collected route table.", "evidence_indices": [0] }
+    ],
+    "assumptions": [],
+    "limitations": [],
+    "freshness": "2026-08-27T18:00:00+00:00",
+    "remediation": "Enable route propagation for tgw-attach-0123456789abcdef0, or add static routes, if its routes should be reachable."
+  }
+]
+```
+
+As with `aws_explain_network_path`, a finding's `confidence` can be
+`"indeterminate"` (e.g. an ENI or load balancer referenced by ID that this
+snapshot could not resolve) -- always a first-class, explicit outcome,
+carried in `limitations`, never an omission. `remediation` is always
+advisory text; nothing in this codebase executes it.
+
+**Example request:**
+
+```json
+{ "tool": "aws_find_network_risks", "input": { "region": "us-east-1", "min_severity": "low" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope. `metadata.count` is the number of findings returned (after
+`min_severity` filtering, if given).
+
+---
+
+## `aws_get_network_health`
+
+**Purpose:** Report network resource health: degraded/failed NAT
+gateways, Transit Gateway attachments, and VPN tunnels; which VPCs have no
+Flow Log configured; and, opt-in, bounded CloudWatch metrics, existing
+Reachability Analyzer results that found no path or failed, and recent
+(capped, read-only) CloudTrail network-configuration events. This tool
+**never enables Flow Logs, never creates a Reachability Analyzer
+path/analysis, and never retrieves log record contents** -- every signal
+it reports is a read of state that already exists.
+
+**AWS API:** The same core snapshot collection as the other diagnostic
+tools, always including VPN resources (`ec2:DescribeVpnConnections`,
+`DescribeCustomerGateways`) since VPN tunnel health feeds the degraded-
+resource check; plus `ec2:DescribeFlowLogs` (Flow Log coverage, always
+collected); plus, opt-in, `cloudwatch:GetMetricStatistics` (one call per
+catalog metric per NAT gateway in scope, bounded by `max_fanout_calls`),
+`ec2:DescribeNetworkInsightsAnalyses` (reads existing analyses only --
+never `StartNetworkInsightsAnalysis`), and `cloudtrail:LookupEvents`
+(bounded lookback and result cap).
+
+**Required IAM permission:** the core snapshot and `ec2:DescribeFlowLogs`
+permissions above (already granted by the Milestone 1-3 policy), plus two
+permissions this milestone adds: `cloudwatch:GetMetricStatistics` and
+`cloudtrail:LookupEvents` (`ec2:DescribeNetworkInsightsAnalyses` is
+covered by the new Network Insights statement documented for the tools
+below).
+
+**Input:**
+
+```json
+{
+  "region": "us-east-1",
+  "vpc_ids": ["vpc-0123456789abcdef0"],
+  "include_metrics": false,
+  "include_reachability_analyses": false,
+  "include_recent_changes": false
+}
+```
+
+`vpc_ids` restricts the report to specific VPCs; omit for the whole
+region. All three `include_*` flags default to `false`:
+
+- `include_metrics` queries a small, curated catalog of the specific
+  CloudWatch metrics each network resource type actually publishes that
+  matter for a health check (`KNOWN_NETWORK_METRICS`) -- NAT Gateway
+  `ErrorPortAllocation`/`PacketsDropCount`, Transit Gateway
+  `PacketDropCountBlackhole`/`PacketDropCountNoRoute`, and VPN
+  `TunnelState` -- not open-ended metric discovery via
+  `cloudwatch:ListMetrics`. Today this tool queries every catalog metric
+  (both NAT gateway metrics) for each NAT gateway in scope: one
+  `cloudwatch:GetMetricStatistics` call per metric per NAT gateway, each
+  bounded to a 24-hour lookback and capped at 288 datapoints, drawn from
+  the shared `max_fanout_calls` budget. If the budget is exhausted before
+  every NAT gateway is queried, the remaining ones are skipped and a note
+  is added to `limitations` rather than the `metrics` list silently
+  coming back incomplete with no explanation.
+- `include_reachability_analyses` lists existing Reachability Analyzer
+  analyses (`ec2:DescribeNetworkInsightsAnalyses`) and surfaces only the
+  ones where `network_path_found` is `false` or `status` is `"failed"` --
+  it never starts a new analysis.
+- `include_recent_changes` looks up recent CloudTrail events
+  (`cloudtrail:LookupEvents`, filtered server-side to
+  `EventSource=ec2.amazonaws.com` and further filtered client-side to a
+  fixed allowlist of network-relevant event names -- route/security-group/
+  NACL/peering/Transit-Gateway-attachment/NAT/internet-gateway/VPN/VPC-
+  endpoint mutations), with a lookback capped at 7 days (24 hours by
+  default) and results capped at 50.
+
+**Output (`data`):**
+
+A `NetworkHealthReport`:
+
+```json
+{
+  "region": "us-east-1",
+  "collected_at": "2026-08-27T18:00:00+00:00",
+  "degraded_resources": [
+    {
+      "rule_id": "CONSIST-005",
+      "rule_version": "1.0.0",
+      "severity": "high",
+      "confidence": "high",
+      "summary": "NAT gateway nat-0123456789abcdef0 is in state 'failed': Insufficient capacity.",
+      "affected_resources": ["nat-0123456789abcdef0"],
+      "evidence": [
+        { "source": "nat_gateway:nat-0123456789abcdef0", "detail": "State=failed FailureCode=InsufficientCapacity" }
+      ],
+      "reasoning": [
+        { "step": 1, "description": "NAT gateway state is 'failed'.", "evidence_indices": [0] }
+      ],
+      "assumptions": [],
+      "limitations": [],
+      "freshness": "2026-08-27T18:00:00+00:00",
+      "remediation": "Replace the NAT gateway; a failed NAT gateway silently drops all egress traffic routed to it."
+    }
+  ],
+  "flow_log_configs": [
+    {
+      "flow_log_id": "fl-0123456789abcdef0",
+      "flow_log_status": "ACTIVE",
+      "resource_id": "vpc-0987654321fedcba0",
+      "traffic_type": "ALL",
+      "log_destination_type": "cloud-watch-logs",
+      "log_destination": "arn:aws:logs:us-east-1:123456789012:log-group:/vpc/flowlogs",
+      "log_group_name": "/vpc/flowlogs",
+      "deliver_logs_status": "SUCCESS",
+      "deliver_logs_error_message": null,
+      "log_format": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
+      "max_aggregation_interval": 600,
+      "tags": {},
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T18:00:00+00:00"
+    }
+  ],
+  "vpcs_without_flow_logs": ["vpc-0123456789abcdef0"],
+  "metrics": [],
+  "unhealthy_reachability_analyses": [],
+  "recent_config_changes": [],
+  "limitations": []
+}
+```
+
+`degraded_resources` reuses the exact same `CONSIST-005` rule
+`aws_find_network_risks` runs -- this tool's health report and the risk
+scanner agree by construction, not by two independently-maintained checks.
+`vpcs_without_flow_logs` is every VPC in scope whose `vpc_id` does not
+appear as a Flow Log's `resource_id` -- this only reports the *absence* of
+a Flow Log configuration; it never enables one. `metrics`/
+`unhealthy_reachability_analyses`/`recent_config_changes` stay empty
+unless the corresponding `include_*` flag was passed. `limitations` is a
+top-level list of any global caveats for this report (currently just the
+`max_fanout_calls`-exhaustion note for `include_metrics`, if it occurs) --
+distinct from the per-finding `limitations` inside `degraded_resources`.
+
+**Example request:**
+
+```json
+{ "tool": "aws_get_network_health", "input": { "region": "us-east-1", "include_metrics": true, "include_recent_changes": true } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope (a single object, not a list -- `metadata.count` is not set for
+this tool).
+
+---
+
+## `aws_list_network_insights_paths`
+
+**Purpose:** List existing Reachability Analyzer path definitions.
+Read-only result *retrieval* -- this tool never creates a path
+(`ec2:CreateNetworkInsightsPath` is a mutating operation, out of scope for
+this milestone).
+
+**AWS API:** `ec2:DescribeNetworkInsightsPaths` (paginated)
+
+**Required IAM permission:** `ec2:DescribeNetworkInsightsPaths`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "network_insights_path_ids": ["nip-0123456789abcdef0"] }
+```
+
+`network_insights_path_ids` is optional; omit it to list every path
+definition in the region.
+
+**Output (`data`):** list of
+
+```json
+{
+  "network_insights_path_id": "nip-0123456789abcdef0",
+  "network_insights_path_arn": "arn:aws:ec2:us-east-1:123456789012:network-insights-path/nip-0123456789abcdef0",
+  "source": "eni-0123456789abcdef0",
+  "destination": "eni-0987654321fedcba0",
+  "source_ip": null,
+  "destination_ip": null,
+  "protocol": "tcp",
+  "destination_port": 443,
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeNetworkInsightsPaths",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+A path definition on its own does not mean it has ever been analyzed --
+pair this with `aws_list_network_insights_analyses` (filtered to this
+path's ID) to see whether, and with what result.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_insights_paths", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_insights_analyses`
+
+**Purpose:** List existing Reachability Analyzer analyses for a path,
+including whether a network path was found. Read-only result *retrieval*
+-- this tool never starts a new analysis
+(`ec2:StartNetworkInsightsAnalysis` is a mutating operation, out of scope
+for this milestone).
+
+**AWS API:** `ec2:DescribeNetworkInsightsAnalyses` (paginated)
+
+**Required IAM permission:** `ec2:DescribeNetworkInsightsAnalyses`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "network_insights_path_id": "nip-0123456789abcdef0" }
+```
+
+`network_insights_path_id` and `network_insights_analysis_ids` are both
+optional; omit both to list every analysis in the region.
+
+**Output (`data`):** list of
+
+```json
+{
+  "network_insights_analysis_id": "nia-0123456789abcdef0",
+  "network_insights_analysis_arn": "arn:aws:ec2:us-east-1:123456789012:network-insights-analysis/nia-0123456789abcdef0",
+  "network_insights_path_id": "nip-0123456789abcdef0",
+  "status": "succeeded",
+  "status_message": null,
+  "warning_message": null,
+  "network_path_found": false,
+  "start_date": "2026-08-27T17:00:00+00:00",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeNetworkInsightsAnalyses",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`network_path_found: false` here is exactly the signal
+`aws_get_network_health`'s `include_reachability_analyses` flag surfaces
+under `unhealthy_reachability_analyses` -- an analysis that completed but
+found no path, or one whose `status` is `"failed"`.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_insights_analyses", "input": { "region": "us-east-1", "network_insights_path_id": "nip-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_insights_access_scopes`
+
+**Purpose:** List existing Network Access Analyzer scope definitions.
+Read-only result *retrieval* -- this tool never creates a scope
+(`ec2:CreateNetworkInsightsAccessScope` is a mutating operation, out of
+scope for this milestone).
+
+**AWS API:** `ec2:DescribeNetworkInsightsAccessScopes` (paginated)
+
+**Required IAM permission:** `ec2:DescribeNetworkInsightsAccessScopes`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "network_insights_access_scope_ids": ["nis-0123456789abcdef0"] }
+```
+
+`network_insights_access_scope_ids` is optional; omit it to list every
+access scope in the region.
+
+**Output (`data`):** list of
+
+```json
+{
+  "network_insights_access_scope_id": "nis-0123456789abcdef0",
+  "network_insights_access_scope_arn": "arn:aws:ec2:us-east-1:123456789012:network-insights-access-scope/nis-0123456789abcdef0",
+  "created_date": "2026-08-01T12:00:00+00:00",
+  "updated_date": "2026-08-01T12:00:00+00:00",
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeNetworkInsightsAccessScopes",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_insights_access_scopes", "input": { "region": "us-east-1" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_list_network_insights_access_scope_analyses`
+
+**Purpose:** List existing Network Access Analyzer scope analyses,
+including whether findings were found. Read-only result *retrieval* --
+this tool never starts a new scope analysis
+(`ec2:StartNetworkInsightsAccessScopeAnalysis` is a mutating operation,
+out of scope for this milestone).
+
+**AWS API:** `ec2:DescribeNetworkInsightsAccessScopeAnalyses` (paginated)
+
+**Required IAM permission:** `ec2:DescribeNetworkInsightsAccessScopeAnalyses`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "network_insights_access_scope_id": "nis-0123456789abcdef0" }
+```
+
+`network_insights_access_scope_id` is optional; omit it to list every
+scope analysis in the region.
+
+**Output (`data`):** list of
+
+```json
+{
+  "network_insights_access_scope_analysis_id": "nisa-0123456789abcdef0",
+  "network_insights_access_scope_analysis_arn": "arn:aws:ec2:us-east-1:123456789012:network-insights-access-scope-analysis/nisa-0123456789abcdef0",
+  "network_insights_access_scope_id": "nis-0123456789abcdef0",
+  "status": "succeeded",
+  "status_message": null,
+  "warning_message": null,
+  "start_date": "2026-08-27T17:00:00+00:00",
+  "end_date": "2026-08-27T17:05:00+00:00",
+  "findings_found": "true",
+  "analyzed_eni_count": 42,
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:DescribeNetworkInsightsAccessScopeAnalyses",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+`findings_found` is AWS's own tri-state string (`"true"`, `"false"`, or
+`"unknown"`), passed through as-is rather than coerced to a boolean --
+`"unknown"` (the analysis has not finished, or AWS could not determine it)
+is a genuinely different state from `"false"` (finished, found nothing).
+When `findings_found` is `"true"`, pass this record's
+`network_insights_access_scope_analysis_id` to
+`aws_get_network_insights_access_scope_analysis_findings` to retrieve the
+findings themselves.
+
+**Example request:**
+
+```json
+{ "tool": "aws_list_network_insights_access_scope_analyses", "input": { "region": "us-east-1", "network_insights_access_scope_id": "nis-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
+## `aws_get_network_insights_access_scope_analysis_findings`
+
+**Purpose:** Retrieve findings for a completed Network Access Analyzer
+scope analysis, bounded to a maximum number of findings. Read-only result
+*retrieval* -- this tool never starts, modifies, or deletes any scope
+analysis.
+
+**AWS API:** `ec2:GetNetworkInsightsAccessScopeAnalysisFindings`
+(paginated; AWS itself paginates this call, and this tool follows pages
+only up to `max_results`, since a single scope analysis can produce a
+very large number of findings)
+
+**Required IAM permission:** `ec2:GetNetworkInsightsAccessScopeAnalysisFindings`
+
+**Input:**
+
+```json
+{ "region": "us-east-1", "network_insights_access_scope_analysis_id": "nisa-0123456789abcdef0", "max_results": 100 }
+```
+
+`network_insights_access_scope_analysis_id` is required. `max_results`
+defaults to 100 and bounds how many findings this call returns in total.
+
+**Output (`data`):** list of
+
+```json
+{
+  "finding_id": "nisaf-0123456789abcdef0",
+  "network_insights_access_scope_analysis_id": "nisa-0123456789abcdef0",
+  "network_insights_access_scope_id": "nis-0123456789abcdef0",
+  "finding_components": [
+    { "component_id": "eni-0123456789abcdef0", "component_arn": "arn:aws:ec2:us-east-1:123456789012:network-interface/eni-0123456789abcdef0" },
+    { "component_id": "sg-0123456789abcdef0", "component_arn": "arn:aws:ec2:us-east-1:123456789012:security-group/sg-0123456789abcdef0" }
+  ],
+  "tags": {},
+  "account_id": "123456789012",
+  "region": "us-east-1",
+  "observed_at": "2026-08-27T18:00:00+00:00",
+  "scope": "regional",
+  "source_api": "ec2:GetNetworkInsightsAccessScopeAnalysisFindings",
+  "collection_completeness": "complete",
+  "redacted": false
+}
+```
+
+Each `finding_components` entry is a bounded summary (component ID/ARN
+only) of one path component, not AWS's full nested explanation payload
+for that component -- this tool retrieves scope-analysis results, it does
+not reproduce the console's full analysis view.
+
+**Example request:**
+
+```json
+{ "tool": "aws_get_network_insights_access_scope_analysis_findings", "input": { "region": "us-east-1", "network_insights_access_scope_analysis_id": "nisa-0123456789abcdef0" } }
+```
+
+**Example response:** see the `data` shape above, wrapped in the standard
+envelope.
+
+---
+
 ## Example IAM policy
 
 Least-privilege policy for the identity aws-cloudops-mcp runs as
 (`AWSCloudOpsMCPReadOnlyRole` in production). Grants exactly what every
-Milestone 1 + Milestone 2 + Milestone 3 tool needs — nothing else:
+Milestone 1 + Milestone 2 + Milestone 3 + Milestone 4 tool needs — nothing
+else:
 
 ```json
 {
@@ -2727,6 +3482,30 @@ Milestone 1 + Milestone 2 + Milestone 3 tool needs — nothing else:
       "Resource": "*"
     },
     {
+      "Sid": "AWSCloudOpsMCPReadOnlyNetworkInsights",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeNetworkInsightsPaths",
+        "ec2:DescribeNetworkInsightsAnalyses",
+        "ec2:DescribeNetworkInsightsAccessScopes",
+        "ec2:DescribeNetworkInsightsAccessScopeAnalyses",
+        "ec2:GetNetworkInsightsAccessScopeAnalysisFindings"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AWSCloudOpsMCPReadOnlyCloudTrail",
+      "Effect": "Allow",
+      "Action": ["cloudtrail:LookupEvents"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AWSCloudOpsMCPReadOnlyCloudWatch",
+      "Effect": "Allow",
+      "Action": ["cloudwatch:GetMetricStatistics"],
+      "Resource": "*"
+    },
+    {
       "Sid": "AWSCloudOpsMCPReadOnlySTS",
       "Effect": "Allow",
       "Action": ["sts:GetCallerIdentity"],
@@ -2736,10 +3515,29 @@ Milestone 1 + Milestone 2 + Milestone 3 tool needs — nothing else:
 }
 ```
 
-`Describe*`/`Get*`/`List*` actions do not support resource-level
-restriction in IAM (they require `Resource: "*"`); scoping happens by
-which *account/role* this policy is attached to, not by ARN. **Do not**
-attach `AdministratorAccess`, `PowerUserAccess`, or a wildcard `ec2:*`/
-`elasticloadbalancing:*`/`route53:*`/`route53resolver:*`/
-`directconnect:*`/`networkmanager:*` policy to this role. See
-[docs/security.md](security.md) for the full security model.
+Milestone 4's diagnostics engine (`aws_explain_network_path`,
+`aws_find_network_risks`, `aws_get_network_health`) reuses the existing
+Milestone 1-3 EC2/ELB `Describe*`/`Get*` actions already granted above --
+it assembles its snapshot by calling the same service-layer functions in
+`aws/networking.py`, `aws/gateways.py`, `aws/nat.py`, `aws/security.py`,
+`aws/nacls.py`, `aws/enis.py`, `aws/peering.py`, `aws/endpoints.py`,
+`aws/prefix_lists.py`, `aws/loadbalancers.py`, `aws/transit_gateway.py`,
+and `aws/vpn.py`, so no new EC2/ELB action is required. The three new
+statements above cover what genuinely is new: Reachability
+Analyzer/Network Access Analyzer result retrieval
+(`AWSCloudOpsMCPReadOnlyNetworkInsights`, used directly by the five
+`aws_list_network_insights_*`/`aws_get_network_insights_*` tools and,
+opt-in, by `aws_get_network_health`), recent network-configuration event
+lookup (`AWSCloudOpsMCPReadOnlyCloudTrail`, opt-in via
+`aws_get_network_health`'s `include_recent_changes`), and bounded NAT
+gateway health metrics (`AWSCloudOpsMCPReadOnlyCloudWatch`, opt-in via
+`aws_get_network_health`'s `include_metrics`).
+
+`Describe*`/`Get*`/`List*`/`LookupEvents` actions do not support
+resource-level restriction in IAM (they require `Resource: "*"`); scoping
+happens by which *account/role* this policy is attached to, not by ARN.
+**Do not** attach `AdministratorAccess`, `PowerUserAccess`, or a wildcard
+`ec2:*`/`elasticloadbalancing:*`/`route53:*`/`route53resolver:*`/
+`directconnect:*`/`networkmanager:*`/`cloudtrail:*`/`cloudwatch:*` policy
+to this role. See [docs/security.md](security.md) for the full security
+model.

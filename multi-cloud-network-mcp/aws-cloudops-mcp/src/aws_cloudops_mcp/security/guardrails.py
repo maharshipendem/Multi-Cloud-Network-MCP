@@ -29,7 +29,14 @@ from aws_cloudops_mcp.exceptions import GuardrailViolationError
 # Every AWS `search_*` client method observed to date (this one, plus
 # SearchLocalGatewayRoutes and SearchTransitGatewayMulticastGroups) is a
 # read/query operation with no AWS-documented side effect.
-READ_ONLY_PREFIXES: tuple[str, ...] = ("describe_", "get_", "list_", "search_")
+#
+# "lookup_" was added in Milestone 4 for cloudtrail:LookupEvents -- the
+# only read/query CloudTrail operation this codebase calls, and (like
+# search_transit_gateway_routes before it) an AWS action that is
+# genuinely read-only but does not follow the describe/get/list naming
+# convention. Same explicit-review pattern: rejected by default until
+# this narrow, reviewable addition.
+READ_ONLY_PREFIXES: tuple[str, ...] = ("describe_", "get_", "list_", "search_", "lookup_")
 
 # Explicit example of operations Milestone 1 tools are known to use. This is
 # not exhaustive -- new read-only operations are permitted automatically as
@@ -40,6 +47,7 @@ READ_ONLY_ACTIONS: frozenset[str] = frozenset(
         "get_caller_identity",
         "describe_regions",
         "search_transit_gateway_routes",
+        "lookup_events",
         "describe_vpcs",
         "describe_subnets",
         "describe_route_tables",

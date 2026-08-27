@@ -44,6 +44,7 @@ _IN_SCOPE_ROUTE_TARGET_TYPES = {
     "vpc_peering_connection",
     "network_interface",
     "egress_only_internet_gateway",
+    "vpc_endpoint",
 }
 
 

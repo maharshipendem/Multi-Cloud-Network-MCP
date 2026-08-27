@@ -59,7 +59,23 @@ MILESTONE_3_TOOL_NAMES = {
     "aws_get_hybrid_topology",
 }
 
-EXPECTED_TOOL_NAMES = MILESTONE_1_TOOL_NAMES | MILESTONE_2_TOOL_NAMES | MILESTONE_3_TOOL_NAMES
+MILESTONE_4_TOOL_NAMES = {
+    "aws_explain_network_path",
+    "aws_find_network_risks",
+    "aws_get_network_health",
+    "aws_list_network_insights_paths",
+    "aws_list_network_insights_analyses",
+    "aws_list_network_insights_access_scopes",
+    "aws_list_network_insights_access_scope_analyses",
+    "aws_get_network_insights_access_scope_analysis_findings",
+}
+
+EXPECTED_TOOL_NAMES = (
+    MILESTONE_1_TOOL_NAMES
+    | MILESTONE_2_TOOL_NAMES
+    | MILESTONE_3_TOOL_NAMES
+    | MILESTONE_4_TOOL_NAMES
+)
 
 
 @pytest.mark.asyncio
@@ -105,4 +121,6 @@ async def test_no_tool_name_implies_mutation(settings: Settings) -> None:
     server = build_server(settings)
     tools = await server.list_tools()
     for tool in tools:
-        assert tool.name.startswith(("aws_get_", "aws_list_", "aws_search_")), tool.name
+        assert tool.name.startswith(
+            ("aws_get_", "aws_list_", "aws_search_", "aws_explain_", "aws_find_")
+        ), tool.name

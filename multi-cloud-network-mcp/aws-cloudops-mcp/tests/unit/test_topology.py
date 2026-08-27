@@ -176,6 +176,33 @@ def test_topology_route_to_igw_edge(
     )
 
 
+def test_topology_route_to_gateway_vpc_endpoint_edge_resolves_to_real_node(
+    client_factory: ClientFactory, rich_topology_fixture: dict[str, str]
+) -> None:
+    """A Gateway-type VPC endpoint's route uses GatewayId=vpce-... (AWS's
+    third reuse of that field, alongside "local" and a virtual private
+    gateway). The route must resolve to the endpoint's real node -- not
+    be misclassified as a plain "gateway" (implying an IGW) and not
+    produce a spurious OUT_OF_SCOPE_TARGET warning, since the endpoint is
+    already collected as an in-scope resource."""
+    topo = get_vpc_topology(
+        client_factory, region="us-east-1", vpc_id=rich_topology_fixture["vpc_id"]
+    )
+    vpce_id = rich_topology_fixture["vpce_id"]
+
+    routes_to_endpoint = [
+        e
+        for e in topo.edges
+        if e.relationship == "routes_to"
+        and e.source_id == rich_topology_fixture["route_table_id"]
+        and e.target_id == vpce_id
+    ]
+    assert len(routes_to_endpoint) == 1
+    assert "vpc_endpoint" in routes_to_endpoint[0].evidence
+    assert vpce_id in {n.node_id for n in topo.nodes}
+    assert not any(vpce_id in w.message for w in topo.warnings)
+
+
 def test_topology_orphan_reference_to_out_of_scope_vgw(
     client_factory: ClientFactory, rich_topology_fixture: dict[str, str]
 ) -> None:

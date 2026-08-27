@@ -1,0 +1,23 @@
+services:
+  azure-network-mcp:
+    build: .
+    image: azure-network-mcp:local
+    # MCP over stdio needs an interactive attached stdin/stdout, not a
+    # detached background service.
+    stdin_open: true
+    tty: true
+    environment:
+      APP_NAME: azure-network-mcp
+      LOG_LEVEL: INFO
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
+      AZURE_SUBSCRIPTION_ALLOWLIST: ${AZURE_SUBSCRIPTION_ALLOWLIST:-}
+      AZURE_TENANT_ALLOWLIST: ${AZURE_TENANT_ALLOWLIST:-}
+      AZURE_DEFAULT_SUBSCRIPTION_ID: ${AZURE_DEFAULT_SUBSCRIPTION_ID:-}
+    volumes:
+      # Local development convenience only: mount the host's Azure CLI
+      # config read-only so `az login`-based auth (picked up by
+      # DefaultAzureCredential's AzureCliCredential fallback) works inside
+      # the container. Do NOT do this in production -- prefer a managed
+      # identity or workload identity federation instead.
+      - ${HOME}/.azure:/home/azure-network-mcp/.azure:ro

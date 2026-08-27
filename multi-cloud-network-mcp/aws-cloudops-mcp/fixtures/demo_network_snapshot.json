@@ -1,0 +1,396 @@
+{
+  "region": "us-east-1",
+  "account_id": "123456789012",
+  "collected_at": "2026-08-27T12:00:00+00:00",
+  "vpcs": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {
+        "Name": "demo-vpc"
+      },
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "vpc_id": "vpc-demo01",
+      "cidr_block": "10.0.0.0/16",
+      "cidr_block_associations": [],
+      "ipv6_cidr_block_associations": [],
+      "state": "available",
+      "is_default": false,
+      "instance_tenancy": null,
+      "dhcp_options_id": null,
+      "enable_dns_support": null,
+      "enable_dns_hostnames": null
+    },
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {
+        "Name": "demo-vpc-overlap"
+      },
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "vpc_id": "vpc-demo02",
+      "cidr_block": "10.0.8.0/20",
+      "cidr_block_associations": [],
+      "ipv6_cidr_block_associations": [],
+      "state": "available",
+      "is_default": false,
+      "instance_tenancy": null,
+      "dhcp_options_id": null,
+      "enable_dns_support": null,
+      "enable_dns_hostnames": null
+    }
+  ],
+  "subnets": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {
+        "Name": "demo-public"
+      },
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "subnet_id": "subnet-demo01public",
+      "vpc_id": "vpc-demo01",
+      "cidr_block": "10.0.1.0/24",
+      "ipv6_cidr_block_associations": [],
+      "availability_zone": "us-east-1a",
+      "availability_zone_id": null,
+      "available_ip_address_count": 250,
+      "map_public_ip_on_launch": true,
+      "assign_ipv6_address_on_creation": null,
+      "default_for_az": null,
+      "state": null
+    },
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {
+        "Name": "demo-private"
+      },
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "subnet_id": "subnet-demo01private",
+      "vpc_id": "vpc-demo01",
+      "cidr_block": "10.0.2.0/24",
+      "ipv6_cidr_block_associations": [],
+      "availability_zone": "us-east-1a",
+      "availability_zone_id": null,
+      "available_ip_address_count": 250,
+      "map_public_ip_on_launch": false,
+      "assign_ipv6_address_on_creation": null,
+      "default_for_az": null,
+      "state": null
+    }
+  ],
+  "route_tables": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {},
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "route_table_id": "rtb-demo01public",
+      "vpc_id": "vpc-demo01",
+      "routes": [
+        {
+          "destination_cidr_block": "10.0.0.0/16",
+          "destination_ipv6_cidr_block": null,
+          "destination_prefix_list_id": null,
+          "target": "local",
+          "target_type": "local",
+          "state": "active",
+          "origin": "CreateRouteTable",
+          "is_propagated": false
+        },
+        {
+          "destination_cidr_block": "0.0.0.0/0",
+          "destination_ipv6_cidr_block": null,
+          "destination_prefix_list_id": null,
+          "target": "igw-demo01",
+          "target_type": "gateway",
+          "state": "active",
+          "origin": "CreateRoute",
+          "is_propagated": false
+        }
+      ],
+      "associations": [
+        {
+          "route_table_association_id": "rtbassoc-1",
+          "subnet_id": "subnet-demo01public",
+          "gateway_id": null,
+          "main": false,
+          "association_state": null
+        }
+      ],
+      "propagating_vgws": []
+    },
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {},
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "route_table_id": "rtb-demo01private",
+      "vpc_id": "vpc-demo01",
+      "routes": [
+        {
+          "destination_cidr_block": "10.0.0.0/16",
+          "destination_ipv6_cidr_block": null,
+          "destination_prefix_list_id": null,
+          "target": "local",
+          "target_type": "local",
+          "state": "active",
+          "origin": "CreateRouteTable",
+          "is_propagated": false
+        },
+        {
+          "destination_cidr_block": "0.0.0.0/0",
+          "destination_ipv6_cidr_block": null,
+          "destination_prefix_list_id": null,
+          "target": "nat-demo01",
+          "target_type": "nat_gateway",
+          "state": "active",
+          "origin": "CreateRoute",
+          "is_propagated": false
+        }
+      ],
+      "associations": [
+        {
+          "route_table_association_id": "rtbassoc-2",
+          "subnet_id": "subnet-demo01private",
+          "gateway_id": null,
+          "main": false,
+          "association_state": null
+        }
+      ],
+      "propagating_vgws": []
+    }
+  ],
+  "security_groups": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {},
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "group_id": "sg-demo01openssh",
+      "group_name": "demo-web-sg",
+      "description": "Demo web server SG (accidentally open SSH)",
+      "vpc_id": "vpc-demo01",
+      "owner_id": null,
+      "rules": [
+        {
+          "account_id": "123456789012",
+          "region": "us-east-1",
+          "observed_at": "2026-08-27T12:00:00+00:00",
+          "tags": {},
+          "scope": "regional",
+          "source_api": null,
+          "collection_completeness": "complete",
+          "redacted": false,
+          "security_group_rule_id": "sgr-demo01ssh",
+          "security_group_id": "sg-demo01openssh",
+          "vpc_id": null,
+          "is_egress": false,
+          "ip_protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22,
+          "peer": {
+            "type": "ipv4",
+            "value": "0.0.0.0/0",
+            "referenced_group_id": null,
+            "referenced_vpc_id": null,
+            "referenced_owner_id": null
+          },
+          "description": "SSH from anywhere -- unintentional, flagged by EXPOSE-001"
+        },
+        {
+          "account_id": "123456789012",
+          "region": "us-east-1",
+          "observed_at": "2026-08-27T12:00:00+00:00",
+          "tags": {},
+          "scope": "regional",
+          "source_api": null,
+          "collection_completeness": "complete",
+          "redacted": false,
+          "security_group_rule_id": "sgr-demo01https",
+          "security_group_id": "sg-demo01openssh",
+          "vpc_id": null,
+          "is_egress": false,
+          "ip_protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "peer": {
+            "type": "ipv4",
+            "value": "0.0.0.0/0",
+            "referenced_group_id": null,
+            "referenced_vpc_id": null,
+            "referenced_owner_id": null
+          },
+          "description": null
+        },
+        {
+          "account_id": "123456789012",
+          "region": "us-east-1",
+          "observed_at": "2026-08-27T12:00:00+00:00",
+          "tags": {},
+          "scope": "regional",
+          "source_api": null,
+          "collection_completeness": "complete",
+          "redacted": false,
+          "security_group_rule_id": "sgr-demo01egress",
+          "security_group_id": "sg-demo01openssh",
+          "vpc_id": null,
+          "is_egress": true,
+          "ip_protocol": "-1",
+          "from_port": null,
+          "to_port": null,
+          "peer": {
+            "type": "ipv4",
+            "value": "0.0.0.0/0",
+            "referenced_group_id": null,
+            "referenced_vpc_id": null,
+            "referenced_owner_id": null
+          },
+          "description": null
+        }
+      ]
+    }
+  ],
+  "network_acls": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {},
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "network_acl_id": "acl-demo01",
+      "vpc_id": "vpc-demo01",
+      "is_default": true,
+      "entries": [
+        {
+          "rule_number": 100,
+          "protocol": "-1",
+          "rule_action": "allow",
+          "egress": false,
+          "cidr_block": "0.0.0.0/0",
+          "ipv6_cidr_block": null,
+          "icmp_type": null,
+          "icmp_code": null,
+          "port_range_from": null,
+          "port_range_to": null
+        },
+        {
+          "rule_number": 100,
+          "protocol": "-1",
+          "rule_action": "allow",
+          "egress": true,
+          "cidr_block": "0.0.0.0/0",
+          "ipv6_cidr_block": null,
+          "icmp_type": null,
+          "icmp_code": null,
+          "port_range_from": null,
+          "port_range_to": null
+        }
+      ],
+      "associations": [
+        {
+          "network_acl_association_id": null,
+          "subnet_id": "subnet-demo01public"
+        },
+        {
+          "network_acl_association_id": null,
+          "subnet_id": "subnet-demo01private"
+        }
+      ]
+    }
+  ],
+  "network_interfaces": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {},
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "network_interface_id": "eni-demo01web",
+      "subnet_id": "subnet-demo01public",
+      "vpc_id": "vpc-demo01",
+      "description": "demo web server",
+      "status": null,
+      "interface_type": null,
+      "private_ip_address": "10.0.1.10",
+      "private_ip_addresses": [],
+      "public_ip": "203.0.113.10",
+      "security_group_ids": [
+        "sg-demo01openssh"
+      ],
+      "attachment": null,
+      "requester_managed": false,
+      "requester_id": null
+    }
+  ],
+  "internet_gateways": [],
+  "egress_only_internet_gateways": [],
+  "nat_gateways": [
+    {
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "tags": {
+        "Name": "demo-nat"
+      },
+      "scope": "regional",
+      "source_api": null,
+      "collection_completeness": "complete",
+      "redacted": false,
+      "nat_gateway_id": "nat-demo01",
+      "vpc_id": "vpc-demo01",
+      "subnet_id": "subnet-demo01public",
+      "state": "available",
+      "connectivity_type": null,
+      "addresses": [],
+      "failure_code": null,
+      "failure_message": null
+    }
+  ],
+  "vpc_peering_connections": [],
+  "vpc_endpoints": [],
+  "managed_prefix_lists": [],
+  "load_balancers": [],
+  "transit_gateways": [],
+  "transit_gateway_attachments": [],
+  "transit_gateway_route_tables": [],
+  "transit_gateway_routes": [],
+  "vpn_connections": [],
+  "customer_gateways": [],
+  "warnings": []
+}
