@@ -1,0 +1,420 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/topology-graph.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.TopologyGraph (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "CloudScope": {
+      "description": "Where a fact was observed: which provider, which tenancy\nboundary, which geography, and when. Every field beyond ``provider``\nand ``collected_at`` is optional because no single provider\npopulates all of them -- see the field-by-field mapping below and\n``docs/normalization.md``.\n\n- ``tenant_id``: Azure AD tenant. Rarely meaningful for AWS/GCP.\n- ``account_id``: AWS account ID (12 digits).\n- ``subscription_id``: Azure subscription GUID.\n- ``project_id``: GCP project ID.\n- ``resource_group``: Azure resource group -- kept as its own field\n  (not folded into ``extensions``) because Azure resource identity is\n  genuinely incomplete without it, unlike a merely-supplementary fact.\n- ``region``: AWS/GCP-style region (``us-east-1``/``us-central1``).\n- ``location``: Azure's own term for the same granularity (ARM\n  responses literally use the JSON field name ``location``, not\n  ``region``) -- kept as a separate field rather than aliased onto\n  ``region``, since forcing Azure's ``location`` string into a field\n  named ``region`` would misrepresent which provider vocabulary it\n  came from.\n- ``zone``: availability-zone-level granularity, when the provider\n  exposes it (AWS AZ, Azure zone number, GCP zone).\n- ``collected_at``: ISO 8601 UTC timestamp this scope's data was\n  observed at -- never a live/real-time value.",
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/Provider"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        },
+        "account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Account Id"
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subscription Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "resource_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Group"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zone"
+        },
+        "collected_at": {
+          "title": "Collected At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "collected_at"
+      ],
+      "title": "CloudScope",
+      "type": "object"
+    },
+    "CollectionWarning": {
+      "description": "A non-fatal issue collecting one resource type/scope -- a\ndisabled API, a missing IAM/RBAC permission, an unreachable\nregion/scope, a bounded fan-out cap reached. Identical in spirit to\nwhat all three cloud repos already call ``CollectionWarning``;\nunified here into one shape.\n\n``resource_type`` is free text (not the closed ``ResourceType``\nenum) because a warning can legitimately be about something outside\nthis contract's 19 canonical resource kinds (e.g. a Shared VPC host\nstatus lookup, a metrics query) -- ``resource_type_hint`` is set\nwhen the warning genuinely does concern one of the canonical types,\nfor a consumer that wants to filter/aggregate by it.\n\nA disabled API or missing permission must never be silently treated\nas \"this scope has zero resources of this type\" -- it must surface\nhere instead. See ``docs/normalization.md``'s partial-result\nguardrail and ``tests/contracts/test_partial_collections.py``.",
+      "properties": {
+        "resource_type": {
+          "title": "Resource Type",
+          "type": "string"
+        },
+        "resource_type_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Type Hint"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CloudScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "resource_type",
+        "code",
+        "message"
+      ],
+      "title": "CollectionWarning",
+      "type": "object"
+    },
+    "Completeness": {
+      "enum": [
+        "complete",
+        "partial"
+      ],
+      "title": "Completeness",
+      "type": "string"
+    },
+    "NodeKind": {
+      "description": "A topology node's resolution state. Formalizes what every cloud\nrepo today represents only informally (AWS: an ``external_endpoint``\nnode-type string plus an undeclared \"orphan edge\" convention; Azure:\na free-form ``node_type`` string plus a ``CollectionWarning``; GCP: a\ndedicated ``OUT_OF_SCOPE_TARGET`` warning code with no node at all)\ninto one explicit, schema-enforced field.",
+      "enum": [
+        "resource",
+        "external",
+        "unresolved"
+      ],
+      "title": "NodeKind",
+      "type": "string"
+    },
+    "Ownership": {
+      "description": "Who owns/is billed for a resource, when that differs from the\nscope it was *collected* under -- e.g. a cross-account VPC peering\naccepter, a cross-subscription hub connection, a GCP Shared VPC\nservice project referencing a host project's network. Absent when\nownership and collection scope are the same (the overwhelmingly\ncommon case).",
+      "properties": {
+        "owner_account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Account Id"
+        },
+        "owner_subscription_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Subscription Id"
+        },
+        "owner_project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Project Id"
+        },
+        "owner_tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Tenant Id"
+        }
+      },
+      "title": "Ownership",
+      "type": "object"
+    },
+    "Provider": {
+      "enum": [
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": "Provider",
+      "type": "string"
+    },
+    "SourceEvidence": {
+      "description": "One specific, already-collected fact a topology edge or\ndiagnostic finding's reasoning relies on -- never an inference\ndressed up as an observation. Identical shape to what all three\ncloud repos' own diagnostics engines already call ``Evidence``;\nrenamed ``SourceEvidence`` here only to avoid colliding with this\nmodule's own vocabulary once re-exported alongside ``CloudScope``/\n``Ownership``.\n\n``source`` identifies exactly which provider-native record the fact\ncame from (e.g. ``\"route_table:rtb-0123\"``,\n``\"firewall_rule:allow-internal@vpc-1\"``); ``detail`` is the\nspecific field/value that was observed.",
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "detail"
+      ],
+      "title": "SourceEvidence",
+      "type": "object"
+    },
+    "TopologyEdge": {
+      "description": "One typed relationship between two nodes, addressed by URN\n(never by a provider-native ID alone -- an edge between resources in\ntwo different scopes must be unambiguous without extra context).\n\n``relationship`` is free text describing the edge's kind (e.g.\n``\"routes_to\"``, ``\"protected_by\"``, ``\"attached_to\"``,\n``\"peers_with\"``, ``\"member_of\"``, ``\"resolves_to\"``,\n``\"load_balances\"``, ``\"terminates_at\"``, ``\"propagates_to\"`` --\nsee ``docs/normalization.md`` for the recommended vocabulary); kept\nopen rather than a closed enum since real cross-cloud relationship\nkinds are too varied to enumerate exhaustively without this contract\nconstantly chasing new provider features.\n\n``evidence`` is always at least one specific, already-observed fact\n(never an inference) that established this edge -- the same\ndiscipline every cloud repo's own topology builder already follows.",
+      "properties": {
+        "source_urn": {
+          "title": "Source Urn",
+          "type": "string"
+        },
+        "target_urn": {
+          "title": "Target Urn",
+          "type": "string"
+        },
+        "relationship": {
+          "title": "Relationship",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/SourceEvidence"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_urn",
+        "target_urn",
+        "relationship",
+        "evidence"
+      ],
+      "title": "TopologyEdge",
+      "type": "object"
+    },
+    "TopologyNode": {
+      "description": "One node in the graph.\n\n``resource_type`` is ``str`` (not the strict ``ResourceType`` enum,\nsee ``enums.py``) and ``None`` only when ``kind`` is ``EXTERNAL`` or\n``UNRESOLVED`` and no canonical type meaningfully applies (e.g. a\nbare on-premises IP terminating a VPN tunnel). ``scope`` is ``None``\nfor an ``EXTERNAL`` node with no cloud scope at all -- it is always\npresent for ``RESOURCE`` nodes.",
+      "properties": {
+        "urn": {
+          "title": "Urn",
+          "type": "string"
+        },
+        "native_id": {
+          "title": "Native Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/NodeKind"
+        },
+        "resource_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Type"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CloudScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ownership": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ownership"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "object"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Extensions",
+          "type": "object"
+        }
+      },
+      "required": [
+        "urn",
+        "native_id",
+        "kind",
+        "label"
+      ],
+      "title": "TopologyNode",
+      "type": "object"
+    }
+  },
+  "description": "A deterministic node/edge graph over one collection scope.\n\n``completeness`` is ``PARTIAL`` whenever ``warnings`` is non-empty --\nenforced at construction time (raises ``ValueError``), never silently\n``COMPLETE`` alongside a recorded warning. Nodes and edges should\nalways be emitted in a stable, deterministic order (sorted by\n``urn``/``(source_urn, target_urn, relationship)``) so repeated calls\nagainst unchanged infrastructure produce byte-identical output -- the\nsame discipline every cloud repo's own topology tool already\nfollows.",
+  "properties": {
+    "scope": {
+      "$ref": "#/$defs/CloudScope"
+    },
+    "completeness": {
+      "$ref": "#/$defs/Completeness",
+      "default": "complete"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/TopologyNode"
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/TopologyEdge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "$ref": "#/$defs/CollectionWarning"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "api_call_count": {
+      "default": 0,
+      "title": "Api Call Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "scope"
+  ],
+  "title": "TopologyGraph",
+  "type": "object"
+}

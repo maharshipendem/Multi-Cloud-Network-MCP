@@ -1,0 +1,40 @@
+{
+  "extensions": {
+    "aws": {
+      "vpn_connection_id": "vpn-0123456789abcdef0",
+      "customer_gateway_id": "cgw-0123456789abcdef0",
+      "outside_ip_address": "203.0.113.1",
+      "accepted_route_count": 2,
+      "note": "peer_gateway_urn is None: the customer gateway is an on-premises device, not a canonical VpnGateway resource this collection observed -- peer_ip is the only identifying fact for it. No pre-shared-key/CustomerGatewayConfiguration field is or ever will be populated here -- see resources.py's redaction guarantee."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:vpn-tunnel:vpn-0123456789abcdef0-tunnel-1",
+  "native_id": "vpn-0123456789abcdef0-tunnel-1",
+  "resource_type": "vpn-tunnel",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeVpnConnections",
+  "collection_completeness": "complete",
+  "gateway_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:vpn-gateway:vgw-0123456789abcdef0",
+  "peer_gateway_urn": null,
+  "peer_ip": "198.51.100.10",
+  "status": "up",
+  "native_status": "UP",
+  "bgp_enabled": true,
+  "bgp_asn": 65000,
+  "redacted": true
+}

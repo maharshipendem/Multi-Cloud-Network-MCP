@@ -70,11 +70,17 @@ MILESTONE_4_TOOL_NAMES = {
     "aws_get_network_insights_access_scope_analysis_findings",
 }
 
+CONTRACT_ADAPTER_TOOL_NAMES = {
+    "aws_get_contract_capabilities",
+    "aws_export_normalized_topology",
+}
+
 EXPECTED_TOOL_NAMES = (
     MILESTONE_1_TOOL_NAMES
     | MILESTONE_2_TOOL_NAMES
     | MILESTONE_3_TOOL_NAMES
     | MILESTONE_4_TOOL_NAMES
+    | CONTRACT_ADAPTER_TOOL_NAMES
 )
 
 
@@ -117,10 +123,16 @@ async def test_no_tool_name_implies_mutation(settings: Settings) -> None:
     substring check. Actual enforcement lives in
     security.guardrails.assert_read_only_operation, covered by
     test_guardrails.py.)
+
+    ``aws_export_normalized_topology`` is included in the allowed-prefix
+    set: it re-shapes data an existing read-only tool
+    (``aws_get_vpc_topology``) already collected -- it issues no AWS API
+    calls of its own beyond that read-only collection -- so "export" is
+    just as recognizably non-mutating here as "get"/"list"/etc.
     """
     server = build_server(settings)
     tools = await server.list_tools()
     for tool in tools:
         assert tool.name.startswith(
-            ("aws_get_", "aws_list_", "aws_search_", "aws_explain_", "aws_find_")
+            ("aws_get_", "aws_list_", "aws_search_", "aws_explain_", "aws_find_", "aws_export_")
         ), tool.name

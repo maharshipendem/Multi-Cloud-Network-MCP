@@ -1,0 +1,44 @@
+{
+  "extensions": {
+    "aws": {
+      "transit_gateway_arn": "arn:aws:ec2:us-east-1:123456789012:transit-gateway/tgw-0123456789abcdef0",
+      "owner_id": "123456789012",
+      "options": {
+        "amazon_side_asn": 64512,
+        "auto_accept_shared_attachments": "disable",
+        "default_route_table_association": "enable",
+        "default_route_table_propagation": "enable",
+        "dns_support": "enable",
+        "vpn_ecmp_support": "enable"
+      },
+      "note": "cidr_blocks left empty per Resources.TransitHub docstring: an AWS Transit Gateway has no CIDR of its own, only attached networks do."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:transit-hub:tgw-0123456789abcdef0",
+  "native_id": "tgw-0123456789abcdef0",
+  "resource_type": "transit-hub",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-tgw",
+  "tags": {
+    "Name": "prod-tgw"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeTransitGateways",
+  "collection_completeness": "complete",
+  "asn": 64512,
+  "state": "available",
+  "route_table_urns": [],
+  "cidr_blocks": []
+}

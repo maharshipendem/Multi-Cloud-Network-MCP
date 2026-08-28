@@ -1,0 +1,104 @@
+{
+  "provider": "gcp",
+  "adapter_package": "gcp-network-mcp",
+  "adapter_version": "0.2.0",
+  "contract_version": "1.0.0",
+  "min_supported_contract_version": "1.0.0",
+  "urn_grammar_version": 1,
+  "supported_resource_types": [
+    {
+      "resource_type": "network",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "Maps a GCP VPC network node 1:1 by identity (self-link/name), but this contract's Network shape (e.g. an aggregate CIDR) has no direct GCP field -- a GCP network itself carries no CIDR; it would need to be synthesized by unioning the network's subnetworks' ranges."
+    },
+    {
+      "resource_type": "subnet",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": true,
+      "notes": "GCP Subnetwork maps directly: self-link, region, and ipCidrRange are exact."
+    },
+    {
+      "resource_type": "route",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP Route resources are collected by gcp_list_routes but not yet joined as topology nodes/edges by gcp_export_normalized_topology's graph."
+    },
+    {
+      "resource_type": "firewall-rule",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP Firewall rules/policies are collected by gcp_list_firewall_rules and gcp_list_network_firewall_policies but not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "transit-hub",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "From Network Connectivity Center Hub (gcp_list_ncc_hubs). NCC has no direct equivalent of a single hub CIDR/route table; a hub's routing state is spread across its route tables and groups, not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "attachment",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "From Network Connectivity Center Spoke (gcp_list_ncc_spokes) -- an NCC spoke wraps a VPC/VPN/Interconnect/Router appliance resource rather than being a first-class attachment object itself; not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "peering",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": true,
+      "notes": "GCP VPC Network Peering maps directly: name, state, and both networks are exact (see the `peered_with` edges in gcp_export_normalized_topology)."
+    },
+    {
+      "resource_type": "vpn-gateway",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP HA VPN/Classic VPN gateways are collected by gcp_list_vpn_gateways but not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "vpn-tunnel",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP VPN tunnels are collected by gcp_list_vpn_tunnels but not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "interconnect",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP Dedicated/Partner Interconnects are collected by gcp_list_interconnects but not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "interconnect-attachment",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP Interconnect Attachments (VLAN attachments) are collected by gcp_list_interconnect_attachments but not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "dns-zone",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "GCP Cloud DNS managed zones are collected by gcp_list_dns_zones but not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "load-balancer",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "From this server's ForwardingRuleSummary (gcp_list_forwarding_rules), a synthesis over GCP's forwarding-rule/target-proxy/backend-service resource chain rather than one first-class GCP load-balancer object; not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "endpoint",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "From GCP Private Service Connect ServiceAttachment/PscEndpoint (gcp_list_service_attachments/gcp_list_psc_endpoints); not yet joined into the topology graph."
+    },
+    {
+      "resource_type": "address",
+      "export_tool": "gcp_export_normalized_topology",
+      "exact_mapping": false,
+      "notes": "From GCP Private Service Access allocated ranges (gcp_list_private_service_access_ranges) -- a synthesis over a VPC peering range reservation rather than a standalone GCP Address resource; not yet joined into the topology graph."
+    }
+  ],
+  "supports_topology": true,
+  "supports_diagnostics": false,
+  "supports_observability": false,
+  "generated_at": "2026-08-20T12:00:00Z"
+}

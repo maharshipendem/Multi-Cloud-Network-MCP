@@ -1,0 +1,39 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-tunnel:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+  "resource_type": "vpn-tunnel",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "region": "us-central1",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "acme-ha-vpn-gw1-tunnel-0",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "VpnTunnelsClient.list",
+  "collection_completeness": "complete",
+  "gateway_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-gateway:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+  "peer_gateway_urn": null,
+  "peer_ip": "203.0.113.20",
+  "status": "up",
+  "native_status": "ESTABLISHED",
+  "bgp_enabled": true,
+  "bgp_asn": 65001,
+  "redacted": true,
+  "extensions": {
+    "gcp": {
+      "vpn_gateway_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+      "vpn_gateway_interface": 0,
+      "peer_external_gateway": null,
+      "peer_gcp_gateway": null,
+      "router_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/routers/acme-prod-shared-vpc-cr1",
+      "ike_version": 2,
+      "detailed_status": "Tunnel is up and running.",
+      "local_traffic_selector": ["0.0.0.0/0"],
+      "remote_traffic_selector": ["0.0.0.0/0"],
+      "_note": "peer_gateway_urn is null and peer_external_gateway is also null: this on-premises VPN device is not represented as its own resource anywhere in this collection (GCP's ExternalVpnGateway type exists but was not collected for this scenario) -- peer_ip (203.0.113.20) is the only identifying fact captured for it, mirroring the AWS vpn-tunnel example's same judgment call. bgp_enabled/bgp_asn are populated via a legitimate cross-resource lookup, not fabricated: GCP's own VpnTunnel model (gcp_network_mcp.models.vpn.VpnTunnel) carries no BGP fields at all -- BGP session config lives on the associated Cloud Router's RouterBgpPeerConfig (gcp_network_mcp.models.bgp), joined here via router_self_link/RouterBgpPeerStatus.linked_vpn_tunnel. redacted=true is permanent: no pre-shared-key-bearing field of any kind exists anywhere on this model or the GCP one it's built from -- see resources.py::VpnTunnel's docstring."
+    }
+  }
+}

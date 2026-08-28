@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "tool": "azure_get_virtual_network",
+  "contract_version": "1.0.0",
+  "request_id": "9f2b6e2e-9a3e-4a86-8f1b-2f6c8b9d0a11",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "data": {
+    "extensions": {
+      "azure": {
+        "provisioning_state": "Succeeded",
+        "enable_ddos_protection": false
+      }
+    },
+    "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+    "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+    "resource_type": "network",
+    "provider": "azure",
+    "scope": {
+      "provider": "azure",
+      "tenant_id": null,
+      "account_id": null,
+      "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "project_id": null,
+      "resource_group": "rg-networking",
+      "region": null,
+      "location": "eastus",
+      "zone": null,
+      "collected_at": "2026-08-28T12:00:00Z"
+    },
+    "name": "vnet-app-eastus",
+    "tags": {
+      "environment": "production",
+      "workload": "app-tier"
+    },
+    "observed_at": "2026-08-28T12:00:00Z",
+    "source_api": "VirtualNetworksOperations.get",
+    "collection_completeness": "complete",
+    "cidr_blocks": [
+      "10.20.0.0/16"
+    ],
+    "ipv6_cidr_blocks": [],
+    "dns_servers": [],
+    "mtu": null,
+    "state": "succeeded"
+  },
+  "pagination": null,
+  "partial_result": {
+    "completeness": "complete",
+    "warnings": []
+  },
+  "error": null
+}

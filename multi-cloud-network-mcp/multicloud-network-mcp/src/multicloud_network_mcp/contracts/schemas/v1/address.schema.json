@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/address.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.Address (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "CloudScope": {
+      "description": "Where a fact was observed: which provider, which tenancy\nboundary, which geography, and when. Every field beyond ``provider``\nand ``collected_at`` is optional because no single provider\npopulates all of them -- see the field-by-field mapping below and\n``docs/normalization.md``.\n\n- ``tenant_id``: Azure AD tenant. Rarely meaningful for AWS/GCP.\n- ``account_id``: AWS account ID (12 digits).\n- ``subscription_id``: Azure subscription GUID.\n- ``project_id``: GCP project ID.\n- ``resource_group``: Azure resource group -- kept as its own field\n  (not folded into ``extensions``) because Azure resource identity is\n  genuinely incomplete without it, unlike a merely-supplementary fact.\n- ``region``: AWS/GCP-style region (``us-east-1``/``us-central1``).\n- ``location``: Azure's own term for the same granularity (ARM\n  responses literally use the JSON field name ``location``, not\n  ``region``) -- kept as a separate field rather than aliased onto\n  ``region``, since forcing Azure's ``location`` string into a field\n  named ``region`` would misrepresent which provider vocabulary it\n  came from.\n- ``zone``: availability-zone-level granularity, when the provider\n  exposes it (AWS AZ, Azure zone number, GCP zone).\n- ``collected_at``: ISO 8601 UTC timestamp this scope's data was\n  observed at -- never a live/real-time value.",
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/Provider"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        },
+        "account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Account Id"
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subscription Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "resource_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Group"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zone"
+        },
+        "collected_at": {
+          "title": "Collected At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "collected_at"
+      ],
+      "title": "CloudScope",
+      "type": "object"
+    },
+    "IpVersion": {
+      "enum": [
+        "ipv4",
+        "ipv6"
+      ],
+      "title": "IpVersion",
+      "type": "string"
+    },
+    "Provider": {
+      "enum": [
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": "Provider",
+      "type": "string"
+    }
+  },
+  "description": "Unifies Azure ``PublicIpAddress`` and GCP ``Address`` as\nfirst-class resources.\n\nSemantic gap: AWS has no first-class Elastic IP resource type in its\nown model set -- an Elastic IP only appears nested inside\n``NatGatewayAddress``/``NetworkInterface.public_ip``. This canonical\ntype still exists (Azure and GCP both warrant it as a first-class\nresource), but an AWS adapter must *synthesize* an ``Address`` record\nfrom those nested fields; that synthesis is an adapter-layer decision\nand is not, and cannot be, a lossless 1:1 export the way it is for\nAzure/GCP.",
+  "properties": {
+    "extensions": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "urn": {
+      "title": "Urn",
+      "type": "string"
+    },
+    "native_id": {
+      "title": "Native Id",
+      "type": "string"
+    },
+    "resource_type": {
+      "title": "Resource Type",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/Provider"
+    },
+    "scope": {
+      "$ref": "#/$defs/CloudScope"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "tags": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "object"
+    },
+    "observed_at": {
+      "title": "Observed At",
+      "type": "string"
+    },
+    "source_api": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Api"
+    },
+    "collection_completeness": {
+      "default": "complete",
+      "title": "Collection Completeness",
+      "type": "string"
+    },
+    "ip_address": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ip Address"
+    },
+    "ip_version": {
+      "$ref": "#/$defs/IpVersion"
+    },
+    "allocation_method": {
+      "title": "Allocation Method",
+      "type": "string"
+    },
+    "associated_resource_urn": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Associated Resource Urn"
+    },
+    "is_public": {
+      "title": "Is Public",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "urn",
+    "native_id",
+    "resource_type",
+    "provider",
+    "scope",
+    "observed_at",
+    "ip_version",
+    "allocation_method",
+    "is_public"
+  ],
+  "title": "Address",
+  "type": "object"
+}

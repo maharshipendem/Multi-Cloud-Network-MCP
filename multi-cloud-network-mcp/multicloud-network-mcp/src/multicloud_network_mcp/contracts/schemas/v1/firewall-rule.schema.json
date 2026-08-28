@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/firewall-rule.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.FirewallRule (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "CloudScope": {
+      "description": "Where a fact was observed: which provider, which tenancy\nboundary, which geography, and when. Every field beyond ``provider``\nand ``collected_at`` is optional because no single provider\npopulates all of them -- see the field-by-field mapping below and\n``docs/normalization.md``.\n\n- ``tenant_id``: Azure AD tenant. Rarely meaningful for AWS/GCP.\n- ``account_id``: AWS account ID (12 digits).\n- ``subscription_id``: Azure subscription GUID.\n- ``project_id``: GCP project ID.\n- ``resource_group``: Azure resource group -- kept as its own field\n  (not folded into ``extensions``) because Azure resource identity is\n  genuinely incomplete without it, unlike a merely-supplementary fact.\n- ``region``: AWS/GCP-style region (``us-east-1``/``us-central1``).\n- ``location``: Azure's own term for the same granularity (ARM\n  responses literally use the JSON field name ``location``, not\n  ``region``) -- kept as a separate field rather than aliased onto\n  ``region``, since forcing Azure's ``location`` string into a field\n  named ``region`` would misrepresent which provider vocabulary it\n  came from.\n- ``zone``: availability-zone-level granularity, when the provider\n  exposes it (AWS AZ, Azure zone number, GCP zone).\n- ``collected_at``: ISO 8601 UTC timestamp this scope's data was\n  observed at -- never a live/real-time value.",
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/Provider"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        },
+        "account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Account Id"
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subscription Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "resource_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Group"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zone"
+        },
+        "collected_at": {
+          "title": "Collected At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "collected_at"
+      ],
+      "title": "CloudScope",
+      "type": "object"
+    },
+    "Provider": {
+      "enum": [
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": "Provider",
+      "type": "string"
+    }
+  },
+  "description": "Unifies AWS ``SecurityGroupRule`` *and* ``NetworkAclEntry``, Azure\nNSG ``SecurityRule``, and GCP ``Firewall`` rule -- the most\nsemantically divergent canonical type in this contract.\n\nSemantic gap (documented deliberately, not smoothed over): AWS alone\nhas *two* distinct filtering mechanisms that both map onto this one\ncanonical type -- stateful Security Group rules (no explicit rule\nordering, evaluated as a permissive union) and stateless NACL entries\n(explicitly ordered by ``rule_number``, evaluated first-match,\nallow-or-deny). Azure NSG rules and GCP firewall rules are each a\nsingle, stateful, priority-ordered mechanism. The ``stateful`` field\nis what actually carries this distinction: ``True`` for every AWS\nSecurity Group rule, every Azure NSG rule, and every GCP firewall\nrule; ``False`` only for an AWS NACL entry. A consumer must branch on\n``stateful`` before assuming return traffic is implicitly allowed.\nGCP additionally has two *implied* default rules per network (implied\nallow-egress, implied deny-ingress) with no explicit native resource\nbacking them -- an adapter emitting those must still mint a URN/\n``native_id`` for them (a synthetic but stable one), documented as\nsynthesized rather than observed.",
+  "properties": {
+    "extensions": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "urn": {
+      "title": "Urn",
+      "type": "string"
+    },
+    "native_id": {
+      "title": "Native Id",
+      "type": "string"
+    },
+    "resource_type": {
+      "title": "Resource Type",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/Provider"
+    },
+    "scope": {
+      "$ref": "#/$defs/CloudScope"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "tags": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "object"
+    },
+    "observed_at": {
+      "title": "Observed At",
+      "type": "string"
+    },
+    "source_api": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Api"
+    },
+    "collection_completeness": {
+      "default": "complete",
+      "title": "Collection Completeness",
+      "type": "string"
+    },
+    "direction": {
+      "title": "Direction",
+      "type": "string"
+    },
+    "action": {
+      "title": "Action",
+      "type": "string"
+    },
+    "protocol": {
+      "title": "Protocol",
+      "type": "string"
+    },
+    "port_range": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Port Range"
+    },
+    "source_ranges": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Ranges",
+      "type": "array"
+    },
+    "destination_ranges": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Destination Ranges",
+      "type": "array"
+    },
+    "priority": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Priority"
+    },
+    "stateful": {
+      "title": "Stateful",
+      "type": "boolean"
+    },
+    "network_urn": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Network Urn"
+    },
+    "associated_resource_urns": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Associated Resource Urns",
+      "type": "array"
+    }
+  },
+  "required": [
+    "urn",
+    "native_id",
+    "resource_type",
+    "provider",
+    "scope",
+    "observed_at",
+    "direction",
+    "action",
+    "protocol",
+    "stateful"
+  ],
+  "title": "FirewallRule",
+  "type": "object"
+}

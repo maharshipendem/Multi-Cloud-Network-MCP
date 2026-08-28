@@ -1,0 +1,43 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:load-balancer:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/prod-app-ilb-fr",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/prod-app-ilb-fr",
+  "resource_type": "load-balancer",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "region": "us-central1",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "prod-app-ilb-fr",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "ForwardingRulesClient.list, TargetHttpsProxiesClient.get, RegionBackendServicesClient.get",
+  "collection_completeness": "complete",
+  "lb_type": "application",
+  "scheme": "internal",
+  "ip_addresses": ["10.10.0.100"],
+  "network_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "listener_ports": [443],
+  "state": "in-use",
+  "extensions": {
+    "gcp": {
+      "forwarding_rule_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/prod-app-ilb-fr",
+      "ip_protocol": "TCP",
+      "load_balancing_scheme": "INTERNAL_MANAGED",
+      "subnetwork_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+      "target_proxy_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/targetHttpsProxies/prod-app-ilb-proxy",
+      "proxy_type": "HTTPS",
+      "url_map_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/urlMaps/prod-app-ilb-url-map",
+      "ssl_certificates": ["https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/sslCertificates/prod-app-cert"],
+      "backend_service_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/backendServices/prod-app-backend",
+      "backend_service_protocol": "HTTPS",
+      "session_affinity": "NONE",
+      "health_check_self_links": ["https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/healthChecks/prod-app-hc"],
+      "backends": [
+        {"group": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/zones/us-central1-a/instanceGroups/prod-app-ig-us-central1-a", "balancing_mode": "UTILIZATION", "capacity_scaler": 1.0}
+      ],
+      "_note": "This record is SYNTHESIZED, not a lossless 1:1 export, per resources.py::LoadBalancer's own docstring: GCP models 'the load balancer' as a loosely-coupled ForwardingRule + TargetProxy + BackendService chain rather than one native resource. native_id/urn are minted from the forwarding rule (the one piece with a stable per-LB self_link); listener_ports=[443] is assembled from the forwarding rule's ports/port_range, not read from a single native field. scheme='internal' reflects load_balancing_scheme=INTERNAL_MANAGED (a regional internal HTTP(S) load balancer serving app-server-1 in prod-shared-vpc-us-central1)."
+    }
+  }
+}

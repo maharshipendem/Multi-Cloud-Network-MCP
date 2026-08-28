@@ -1,0 +1,51 @@
+{
+  "extensions": {
+    "aws": {
+      "interface_type": "interface",
+      "public_ip": "203.0.113.55",
+      "security_group_ids": [
+        "sg-0abc123def456789"
+      ],
+      "requester_managed": false,
+      "attachment": {
+        "attachment_id": "eni-attach-0123456789abcdef0",
+        "instance_id": "i-0123456789abcdef0",
+        "device_index": 0,
+        "status": "attached",
+        "delete_on_termination": true
+      }
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network-interface:eni-0123456789abcdef0",
+  "native_id": "eni-0123456789abcdef0",
+  "resource_type": "network-interface",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {
+    "Name": "prod-web-eni-1"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeNetworkInterfaces",
+  "collection_completeness": "complete",
+  "subnet_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1,zone=us-east-1a:subnet:subnet-0123456789abcdef0",
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "private_ip_addresses": [
+    "10.0.1.15"
+  ],
+  "mac_address": "0a:1b:2c:3d:4e:5f",
+  "associated_resource_urn": null,
+  "firewall_rule_group_urns": [],
+  "state": "in-use"
+}

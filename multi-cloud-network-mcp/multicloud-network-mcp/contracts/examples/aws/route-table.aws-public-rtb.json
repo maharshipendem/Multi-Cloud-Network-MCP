@@ -1,0 +1,37 @@
+{
+  "extensions": {
+    "aws": {
+      "main": false
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:route-table:rtb-0123456789abcdef0",
+  "native_id": "rtb-0123456789abcdef0",
+  "resource_type": "route-table",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-public-rtb",
+  "tags": {
+    "Name": "prod-public-rtb"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeRouteTables",
+  "collection_completeness": "complete",
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "subnet_association_urns": [
+    "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1,zone=us-east-1a:subnet:subnet-0123456789abcdef0"
+  ],
+  "route_urns": [
+    "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:route:rtb-0123456789abcdef0%3A0.0.0.0/0"
+  ]
+}

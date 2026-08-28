@@ -1,0 +1,40 @@
+{
+  "extensions": {
+    "aws": {
+      "security_group_ids": [
+        "sg-0fedcba9876543210"
+      ],
+      "host_vpc_id": "vpc-0abc123def456789"
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:dns-resolver:rslvr-out-0123456789abcdef0",
+  "native_id": "rslvr-out-0123456789abcdef0",
+  "resource_type": "dns-resolver",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-outbound-resolver",
+  "tags": {
+    "Name": "prod-outbound-resolver"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "route53resolver:ListResolverEndpoints",
+  "collection_completeness": "complete",
+  "direction": "outbound",
+  "ip_addresses": [
+    "10.0.1.20",
+    "10.0.2.20"
+  ],
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "state": "operational"
+}

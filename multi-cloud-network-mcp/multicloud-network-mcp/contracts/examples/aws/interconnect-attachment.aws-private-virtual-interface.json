@@ -1,0 +1,39 @@
+{
+  "extensions": {
+    "aws": {
+      "virtual_interface_type": "private",
+      "amazon_address": "192.0.2.1/30",
+      "customer_address": "192.0.2.2/30",
+      "note": "router_urn points at the Transit Gateway this private VIF's Direct Connect Gateway is associated with -- an adapter-layer choice documented in NOTES.md, since AWS's own VirtualInterface model has no single 'router' field (the VIF -> DXGW -> TGW chain is three separate AWS resources)."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:interconnect-attachment:dxvif-abcd1234",
+  "native_id": "dxvif-abcd1234",
+  "resource_type": "interconnect-attachment",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-dx-private-vif",
+  "tags": {
+    "Name": "prod-dx-private-vif"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "directconnect:DescribeVirtualInterfaces",
+  "collection_completeness": "complete",
+  "interconnect_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:interconnect:dxcon-fabcd234",
+  "vlan_id": 101,
+  "asn": 65000,
+  "router_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:transit-hub:tgw-0123456789abcdef0",
+  "state": "available",
+  "redacted": true
+}

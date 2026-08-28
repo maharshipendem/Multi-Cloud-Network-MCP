@@ -1,0 +1,38 @@
+{
+  "extensions": {
+    "aws": {
+      "raw_origin": "CreateRoute",
+      "raw_state": "active",
+      "target_type": "internet-gateway",
+      "note": "raw_origin 'CreateRoute' normalizes to RouteOrigin.STATIC per normalization/route.py's table -- this is a user/console-created default route, not the VPC's implicit local route."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:route:rtb-0123456789abcdef0%3A0.0.0.0/0",
+  "native_id": "rtb-0123456789abcdef0:0.0.0.0/0",
+  "resource_type": "route",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeRouteTables",
+  "collection_completeness": "complete",
+  "destination_cidr": "0.0.0.0/0",
+  "destination_ipv6_cidr": null,
+  "next_hop_type": "internet-gateway",
+  "next_hop_target": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:gateway:igw-0123456789abcdef0",
+  "origin": "static",
+  "state": "active",
+  "priority": null
+}

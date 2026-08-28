@@ -1,0 +1,205 @@
+{
+  "scope": {
+    "provider": "gcp",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": null,
+    "project_id": "acme-prod-networking-123456",
+    "resource_group": null,
+    "region": null,
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "completeness": "partial",
+  "nodes": [
+    {
+      "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+      "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+      "kind": "resource",
+      "resource_type": "network",
+      "label": "prod-shared-vpc",
+      "scope": {
+        "provider": "gcp",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": null,
+        "project_id": "acme-prod-networking-123456",
+        "resource_group": null,
+        "region": null,
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-20T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:subnet:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+      "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+      "kind": "resource",
+      "resource_type": "subnet",
+      "label": "prod-shared-vpc-us-central1",
+      "scope": {
+        "provider": "gcp",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": null,
+        "project_id": "acme-prod-networking-123456",
+        "resource_group": null,
+        "region": "us-central1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-20T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-gateway:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+      "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+      "kind": "resource",
+      "resource_type": "vpn-gateway",
+      "label": "acme-ha-vpn-gw1",
+      "scope": {
+        "provider": "gcp",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": null,
+        "project_id": "acme-prod-networking-123456",
+        "resource_group": null,
+        "region": "us-central1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-20T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-tunnel:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+      "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+      "kind": "resource",
+      "resource_type": "vpn-tunnel",
+      "label": "acme-ha-vpn-gw1-tunnel-0",
+      "scope": {
+        "provider": "gcp",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": null,
+        "project_id": "acme-prod-networking-123456",
+        "resource_group": null,
+        "region": "us-central1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-20T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:gcp::external:203.0.113.20",
+      "native_id": "203.0.113.20",
+      "kind": "external",
+      "resource_type": null,
+      "label": "on-premises VPN peer (203.0.113.20)",
+      "scope": null,
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:gcp:project_id=acme-partner-services-654321:network:https%3A//www.googleapis.com/compute/v1/projects/acme-partner-services-654321/global/networks/partner-vpc",
+      "native_id": "https://www.googleapis.com/compute/v1/projects/acme-partner-services-654321/global/networks/partner-vpc",
+      "kind": "unresolved",
+      "resource_type": "network",
+      "label": "partner-vpc (cross-project, unresolved)",
+      "scope": null,
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    }
+  ],
+  "edges": [
+    {
+      "source_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+      "target_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:subnet:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+      "relationship": "contains",
+      "evidence": [
+        {
+          "source": "subnetwork:https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+          "detail": "Subnetwork.network == https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-gateway:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+      "target_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+      "relationship": "attached_to",
+      "evidence": [
+        {
+          "source": "vpn_gateway:https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+          "detail": "VpnGateway.network == https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-tunnel:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+      "target_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-gateway:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+      "relationship": "attached_to",
+      "evidence": [
+        {
+          "source": "vpn_tunnel:https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+          "detail": "VpnTunnel.vpnGateway == acme-ha-vpn-gw1, vpnGatewayInterface=0"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-tunnel:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+      "target_urn": "urn:mcnet:v1:gcp::external:203.0.113.20",
+      "relationship": "terminates_at",
+      "evidence": [
+        {
+          "source": "vpn_tunnel:https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+          "detail": "VpnTunnel.peerIp == 203.0.113.20, status=ESTABLISHED"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+      "target_urn": "urn:mcnet:v1:gcp:project_id=acme-partner-services-654321:network:https%3A//www.googleapis.com/compute/v1/projects/acme-partner-services-654321/global/networks/partner-vpc",
+      "relationship": "peers_with",
+      "evidence": [
+        {
+          "source": "network_peering:prod-shared-vpc-to-partner-vpc",
+          "detail": "Network.peerings[].name == prod-shared-vpc-to-partner-vpc, network == https://www.googleapis.com/compute/v1/projects/acme-partner-services-654321/global/networks/partner-vpc, state=ACTIVE"
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "resource_type": "network",
+      "resource_type_hint": "network",
+      "code": "cross_project_permission_denied",
+      "message": "Peered network partner-vpc is owned by project acme-partner-services-654321, which this collection's credentials have no IAM read access to (no compute.networks.get binding visible). The peering itself (prod-shared-vpc-to-partner-vpc) was observed from prod-shared-vpc's own Network.peerings field, but the peer network's own attributes could not be resolved, so it is represented as an UNRESOLVED node rather than a RESOURCE node or a silently dropped reference.",
+      "scope": {
+        "provider": "gcp",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": null,
+        "project_id": "acme-prod-networking-123456",
+        "resource_group": null,
+        "region": null,
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-20T12:00:00Z"
+      }
+    }
+  ],
+  "api_call_count": 9
+}

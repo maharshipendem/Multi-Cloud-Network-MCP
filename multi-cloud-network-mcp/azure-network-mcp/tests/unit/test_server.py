@@ -88,7 +88,14 @@ MILESTONE_6_TOOL_NAMES = {
     "azure_get_network_health",
 }
 
-EXPECTED_TOOL_NAMES = MILESTONE_5_TOOL_NAMES | MILESTONE_6_TOOL_NAMES
+MILESTONE_9_TOOL_NAMES = {
+    # multicloud-network-mcp contract adapter surface (ADR 0001: no
+    # runtime coupling -- see azure_network_mcp/tools/contracts.py)
+    "azure_get_contract_capabilities",
+    "azure_export_normalized_topology",
+}
+
+EXPECTED_TOOL_NAMES = MILESTONE_5_TOOL_NAMES | MILESTONE_6_TOOL_NAMES | MILESTONE_9_TOOL_NAMES
 
 
 @pytest.mark.asyncio
@@ -126,5 +133,5 @@ async def test_no_tool_name_implies_mutation(settings: Settings) -> None:
     tools = await server.list_tools()
     for tool in tools:
         assert tool.name.startswith(
-            ("azure_get_", "azure_list_", "azure_explain_", "azure_find_")
+            ("azure_get_", "azure_list_", "azure_explain_", "azure_find_", "azure_export_")
         ), tool.name

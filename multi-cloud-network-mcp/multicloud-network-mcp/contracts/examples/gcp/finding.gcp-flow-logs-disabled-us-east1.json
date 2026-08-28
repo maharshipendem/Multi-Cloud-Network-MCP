@@ -1,0 +1,41 @@
+{
+  "rule_id": "gcp.observability.flow-logs-disabled",
+  "rule_version": "1.0.0",
+  "provider": "gcp",
+  "severity": "medium",
+  "confidence": "high",
+  "summary": "Subnetwork prod-shared-vpc-us-east1 (10.20.0.0/20) has VPC Flow Logs disabled (enableFlowLogs=false), leaving traffic to/from resources in this subnet unobserved for network forensics and any diagnostics that depend on flow-log data.",
+  "affected_resources": [
+    "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-east1:subnet:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-east1/subnetworks/prod-shared-vpc-us-east1"
+  ],
+  "evidence": [
+    {
+      "source": "subnetwork:https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-east1/subnetworks/prod-shared-vpc-us-east1",
+      "detail": "enableFlowLogs=false"
+    },
+    {
+      "source": "vpc_flow_logs_config:projects/acme-prod-networking-123456/locations/global/vpcFlowLogsConfigs",
+      "detail": "no VpcFlowLogsConfig entry targets prod-shared-vpc-us-east1 (only prod-shared-vpc-us-central1-flow-logs, targeting the us-central1 subnet, was found)"
+    }
+  ],
+  "reasoning": [
+    {
+      "step": 1,
+      "description": "Subnetwork prod-shared-vpc-us-east1's own enableFlowLogs field is false, meaning Compute Engine's built-in per-subnet flow-log toggle is off.",
+      "evidence_indices": [0]
+    },
+    {
+      "step": 2,
+      "description": "No Network Management API VpcFlowLogsConfig targeting this subnet exists either (see observability-reference.gcp-flow-logs-us-central1.json, which covers only the sibling us-central1 subnet), confirming no flow-log mechanism -- built-in or Network Management API -- is active for prod-shared-vpc-us-east1.",
+      "evidence_indices": [1]
+    }
+  ],
+  "assumptions": [
+    "No project-level or organization-level default flow-log policy overrides this subnet's own enableFlowLogs setting."
+  ],
+  "limitations": [
+    "This finding evaluates flow-log configuration only; it does not check whether another observability mechanism (e.g. Packet Mirroring) provides equivalent coverage for this subnet."
+  ],
+  "freshness": "2026-08-20T12:00:00Z",
+  "remediation": "Enable flow logs on subnetwork prod-shared-vpc-us-east1 (gcloud compute networks subnetworks update prod-shared-vpc-us-east1 --region=us-east1 --enable-flow-logs), matching the configuration already present on prod-shared-vpc-us-central1."
+}

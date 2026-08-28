@@ -1,0 +1,35 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:dns-zone:projects/acme-prod-networking-123456/managedZones/acme-example-com",
+  "native_id": "projects/acme-prod-networking-123456/managedZones/acme-example-com",
+  "resource_type": "dns-zone",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "acme-example-com",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "google.cloud.dns.Client.list_zones",
+  "collection_completeness": "complete",
+  "dns_name": "acme-example.com.",
+  "is_private": false,
+  "record_set_count": 8,
+  "linked_network_urns": [],
+  "name_servers": [
+    "ns-cloud-a1.googledomains.com.",
+    "ns-cloud-a2.googledomains.com.",
+    "ns-cloud-a3.googledomains.com.",
+    "ns-cloud-a4.googledomains.com."
+  ],
+  "extensions": {
+    "gcp": {
+      "zone_id": "1234567890",
+      "name_server_set": null,
+      "description": "Public zone for acme-example.com",
+      "project_id": "acme-prod-networking-123456",
+      "_note": "is_private=false and linked_network_urns=[] are both BEST-EFFORT DEFAULTS, not directly-observed facts -- google-cloud-dns (the only Google-published Python client for Cloud DNS, and the only one this adapter uses) exposes no visibility/privateVisibilityConfig accessor at all (see gcp_network_mcp.models.dns's module docstring and docs/limitations.md#cloud-dns), so this adapter cannot actually distinguish a public zone from a private one, nor read which networks a private zone is bound to. Defaulting is_private to false (rather than asserting true, which would claim a privacy guarantee this collection never verified) and leaving linked_network_urns empty (rather than guessing prod-shared-vpc) are the least-overclaiming choices available given this structural collection gap. name_servers is populated because, per resources.py::DnsZone's own docstring, GCP always returns its assigned name servers for a managed zone regardless of this visibility gap -- that field IS reliable."
+    }
+  }
+}

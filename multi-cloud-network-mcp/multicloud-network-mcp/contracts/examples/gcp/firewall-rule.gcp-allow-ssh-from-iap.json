@@ -1,0 +1,36 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:firewall-rule:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/firewalls/allow-ssh-from-iap",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/firewalls/allow-ssh-from-iap",
+  "resource_type": "firewall-rule",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "allow-ssh-from-iap",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "FirewallsClient.list",
+  "collection_completeness": "complete",
+  "direction": "ingress",
+  "action": "allow",
+  "protocol": "tcp",
+  "port_range": "22",
+  "source_ranges": ["35.235.240.0/20"],
+  "destination_ranges": [],
+  "priority": 1000,
+  "stateful": true,
+  "network_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "associated_resource_urns": [
+    "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,zone=us-central1-a:network-interface:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/zones/us-central1-a/instances/app-server-1/networkInterfaces/nic0"
+  ],
+  "extensions": {
+    "gcp": {
+      "target_tags": ["ssh-allowed"],
+      "disabled": false,
+      "is_implied": false,
+      "_note": "stateful=true: every GCP firewall rule is stateful (see FirewallRule model docstring). This is an explicit, listed rule (is_implied=false) rather than one of GCP's two implied per-network default rules (allow-egress/deny-ingress) -- see NOTES.md for why those aren't exampled as separate files. associated_resource_urns points at the target NIC rather than network_interface.firewall_rule_group_urns, per the NetworkInterface model's own documented guidance for GCP's tag/service-account-based attachment model."
+    }
+  }
+}

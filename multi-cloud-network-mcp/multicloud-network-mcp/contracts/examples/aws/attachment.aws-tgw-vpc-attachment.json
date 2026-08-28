@@ -1,0 +1,35 @@
+{
+  "extensions": {
+    "aws": {
+      "transit_gateway_owner_id": "123456789012",
+      "resource_owner_id": "123456789012",
+      "raw_resource_type": "vpc"
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:attachment:tgw-attach-0123456789abcdef0",
+  "native_id": "tgw-attach-0123456789abcdef0",
+  "resource_type": "attachment",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeTransitGatewayAttachments",
+  "collection_completeness": "complete",
+  "transit_hub_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:transit-hub:tgw-0123456789abcdef0",
+  "attached_resource_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "attached_resource_type": "network",
+  "state": "available",
+  "state_reason": null
+}

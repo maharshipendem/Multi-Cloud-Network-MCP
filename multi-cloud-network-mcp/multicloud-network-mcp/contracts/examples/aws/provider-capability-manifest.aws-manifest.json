@@ -1,0 +1,140 @@
+{
+  "provider": "aws",
+  "adapter_package": "aws-cloudops-mcp",
+  "adapter_version": "0.4.0",
+  "contract_version": "1.0.0",
+  "min_supported_contract_version": "1.0.0",
+  "urn_grammar_version": 1,
+  "supported_resource_types": [
+    {
+      "resource_type": "network",
+      "export_tool": "aws_list_vpcs",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "subnet",
+      "export_tool": "aws_list_subnets",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "network-interface",
+      "export_tool": "aws_list_network_interfaces",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "address",
+      "export_tool": "aws_list_network_interfaces",
+      "exact_mapping": false,
+      "notes": "AWS has no first-class Elastic IP resource; synthesized from NetworkInterface.public_ip / NatGatewayAddress. See docs/normalization.md."
+    },
+    {
+      "resource_type": "route-table",
+      "export_tool": "aws_list_route_tables",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "route",
+      "export_tool": "aws_list_route_tables",
+      "exact_mapping": true,
+      "notes": "origin/state normalized via normalization/route.py's AWS table."
+    },
+    {
+      "resource_type": "firewall-rule",
+      "export_tool": "aws_list_security_groups, aws_list_network_acls",
+      "exact_mapping": true,
+      "notes": "Two distinct AWS mechanisms (stateful Security Group rules, stateless NACL entries) both map here; stateful field carries the distinction."
+    },
+    {
+      "resource_type": "gateway",
+      "export_tool": "aws_list_internet_gateways, aws_list_nat_gateways",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "transit-hub",
+      "export_tool": "aws_list_transit_gateways",
+      "exact_mapping": true,
+      "notes": "cidr_blocks always empty -- AWS Transit Gateways have no CIDR of their own."
+    },
+    {
+      "resource_type": "attachment",
+      "export_tool": "aws_list_transit_gateway_attachments",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "peering",
+      "export_tool": "aws_list_vpc_peering_connections",
+      "exact_mapping": false,
+      "notes": "allow_forwarded_traffic/exchange_subnet_routes/import_custom_routes/export_custom_routes always None -- AWS has no matching native fields."
+    },
+    {
+      "resource_type": "vpn-gateway",
+      "export_tool": "aws_list_vpn_gateways",
+      "exact_mapping": false,
+      "notes": "is_ha is inferred (from attached tunnel count), not a native AWS field."
+    },
+    {
+      "resource_type": "vpn-tunnel",
+      "export_tool": "aws_list_vpn_connections",
+      "exact_mapping": true,
+      "notes": "redacted=True permanently; no pre-shared-key field ever populated."
+    },
+    {
+      "resource_type": "interconnect",
+      "export_tool": "aws_list_direct_connect_connections",
+      "exact_mapping": true,
+      "notes": "redacted=True permanently."
+    },
+    {
+      "resource_type": "interconnect-attachment",
+      "export_tool": "aws_list_direct_connect_virtual_interfaces",
+      "exact_mapping": true,
+      "notes": "redacted=True permanently."
+    },
+    {
+      "resource_type": "dns-zone",
+      "export_tool": "aws_list_hosted_zones",
+      "exact_mapping": true,
+      "notes": "Global scope -- scope.region intentionally omitted."
+    },
+    {
+      "resource_type": "dns-resolver",
+      "export_tool": "aws_list_resolver_endpoints",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "dns-rule",
+      "export_tool": "aws_list_resolver_rules",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "load-balancer",
+      "export_tool": "aws_list_load_balancers",
+      "exact_mapping": true,
+      "notes": null
+    },
+    {
+      "resource_type": "endpoint",
+      "export_tool": "aws_list_vpc_endpoints",
+      "exact_mapping": true,
+      "notes": "endpoint_type always 'consumer' -- AWS has no first-class producer-side endpoint resource."
+    },
+    {
+      "resource_type": "observability-reference",
+      "export_tool": "aws_list_flow_logs",
+      "exact_mapping": true,
+      "notes": null
+    }
+  ],
+  "supports_topology": true,
+  "supports_diagnostics": true,
+  "supports_observability": true,
+  "generated_at": "2026-08-28T12:00:00Z"
+}

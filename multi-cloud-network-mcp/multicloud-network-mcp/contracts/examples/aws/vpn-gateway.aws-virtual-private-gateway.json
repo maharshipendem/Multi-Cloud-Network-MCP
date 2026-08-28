@@ -1,0 +1,40 @@
+{
+  "extensions": {
+    "aws": {
+      "gateway_type": "ipsec.1",
+      "vpc_attachments": [
+        {
+          "vpc_id": "vpc-0abc123def456789",
+          "state": "attached"
+        }
+      ],
+      "note": "is_ha=True is a best-effort inference, not a directly observed AWS field: an AWS VPN Gateway has no HA flag of its own, but its attached VPN Connection provisions two tunnels for redundancy by default (see vpn-tunnel.aws-tunnel-established.json), which is what this inference is based on."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:vpn-gateway:vgw-0123456789abcdef0",
+  "native_id": "vgw-0123456789abcdef0",
+  "resource_type": "vpn-gateway",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeVpnGateways",
+  "collection_completeness": "complete",
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "asn": 64512,
+  "is_ha": true,
+  "interface_ip_addresses": [],
+  "state": "available"
+}

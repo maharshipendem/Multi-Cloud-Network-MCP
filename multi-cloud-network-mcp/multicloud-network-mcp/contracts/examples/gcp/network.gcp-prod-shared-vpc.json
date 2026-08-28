@@ -1,0 +1,36 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "resource_type": "network",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "prod-shared-vpc",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "NetworksClient.get",
+  "collection_completeness": "complete",
+  "cidr_blocks": ["10.10.0.0/20", "10.20.0.0/20"],
+  "ipv6_cidr_blocks": [],
+  "dns_servers": [],
+  "mtu": 1460,
+  "state": "available",
+  "extensions": {
+    "gcp": {
+      "mode": "custom",
+      "routing_mode": "GLOBAL",
+      "subnetwork_self_links": [
+        "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+        "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-east1/subnetworks/prod-shared-vpc-us-east1"
+      ],
+      "peering_names": ["prod-shared-vpc-to-partner-vpc"],
+      "firewall_policy_self_link": null,
+      "network_firewall_policy_enforcement_order": "AFTER_CLASSIC_FIREWALL",
+      "internal_ipv6_range": null,
+      "_note": "GCP's own Network model has no 'state' field at all (see gcp-network-mcp/src/gcp_network_mcp/models/networking.py::Network) -- canonical 'state' above is inferred as 'available' for any network the list/get call successfully returned, not read from a native field."
+    }
+  }
+}

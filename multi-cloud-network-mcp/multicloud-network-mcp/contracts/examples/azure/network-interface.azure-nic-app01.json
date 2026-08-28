@@ -1,0 +1,40 @@
+{
+  "extensions": {
+    "azure": {
+      "enable_accelerated_networking": true,
+      "primary": true
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network-interface:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01",
+  "resource_type": "network-interface",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "nic-app01",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "NetworkInterfacesOperations.list_all",
+  "collection_completeness": "complete",
+  "subnet_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:subnet:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus/subnets/snet-app",
+  "network_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+  "private_ip_addresses": [
+    "10.20.1.4"
+  ],
+  "mac_address": "00-0D-3A-11-22-33",
+  "associated_resource_urn": null,
+  "firewall_rule_group_urns": [
+    "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:firewall-rule:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app"
+  ],
+  "state": "succeeded"
+}

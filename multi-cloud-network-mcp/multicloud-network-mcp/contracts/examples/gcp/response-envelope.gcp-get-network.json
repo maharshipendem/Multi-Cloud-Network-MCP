@@ -1,0 +1,66 @@
+{
+  "success": true,
+  "tool": "gcp_get_network",
+  "contract_version": "1.0.0",
+  "request_id": "3f1a9c2e-6b4d-4e8a-9c3d-2b5f7a8e1d4c",
+  "scope": {
+    "provider": "gcp",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": null,
+    "project_id": "acme-prod-networking-123456",
+    "resource_group": null,
+    "region": null,
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "data": {
+    "extensions": {
+      "gcp": {
+        "mode": "custom",
+        "routing_mode": "GLOBAL",
+        "subnetwork_self_links": [
+          "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+          "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-east1/subnetworks/prod-shared-vpc-us-east1"
+        ],
+        "peering_names": ["prod-shared-vpc-to-partner-vpc"],
+        "firewall_policy_self_link": null,
+        "network_firewall_policy_enforcement_order": "AFTER_CLASSIC_FIREWALL",
+        "internal_ipv6_range": null
+      }
+    },
+    "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+    "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+    "resource_type": "network",
+    "provider": "gcp",
+    "scope": {
+      "provider": "gcp",
+      "tenant_id": null,
+      "account_id": null,
+      "subscription_id": null,
+      "project_id": "acme-prod-networking-123456",
+      "resource_group": null,
+      "region": null,
+      "location": null,
+      "zone": null,
+      "collected_at": "2026-08-20T12:00:00Z"
+    },
+    "name": "prod-shared-vpc",
+    "tags": {},
+    "observed_at": "2026-08-20T12:00:00Z",
+    "source_api": "NetworksClient.get",
+    "collection_completeness": "complete",
+    "cidr_blocks": ["10.10.0.0/20", "10.20.0.0/20"],
+    "ipv6_cidr_blocks": [],
+    "dns_servers": [],
+    "mtu": 1460,
+    "state": "available"
+  },
+  "pagination": null,
+  "partial_result": {
+    "completeness": "complete",
+    "warnings": []
+  },
+  "error": null
+}
