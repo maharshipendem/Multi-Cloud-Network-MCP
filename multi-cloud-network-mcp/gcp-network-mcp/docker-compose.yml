@@ -1,0 +1,24 @@
+services:
+  gcp-network-mcp:
+    build: .
+    image: gcp-network-mcp:local
+    # MCP over stdio needs an interactive attached stdin/stdout, not a
+    # detached background service.
+    stdin_open: true
+    tty: true
+    environment:
+      APP_NAME: gcp-network-mcp
+      LOG_LEVEL: INFO
+      GCP_QUOTA_PROJECT_ID: ${GCP_QUOTA_PROJECT_ID:-}
+      GCP_IMPERSONATE_SERVICE_ACCOUNT: ${GCP_IMPERSONATE_SERVICE_ACCOUNT:-}
+      GCP_PROJECT_ALLOWLIST: ${GCP_PROJECT_ALLOWLIST:-}
+      GCP_FOLDER_ALLOWLIST: ${GCP_FOLDER_ALLOWLIST:-}
+      GCP_ORGANIZATION_ALLOWLIST: ${GCP_ORGANIZATION_ALLOWLIST:-}
+      GCP_DEFAULT_PROJECT_ID: ${GCP_DEFAULT_PROJECT_ID:-}
+    volumes:
+      # Local development convenience only: mount the host's gcloud ADC
+      # config read-only so `gcloud auth application-default login`-based
+      # auth (google.auth.default()'s standard ADC-file fallback) works
+      # inside the container. Do NOT do this in production -- prefer an
+      # attached service account or workload identity federation instead.
+      - ${HOME}/.config/gcloud:/home/gcp-network-mcp/.config/gcloud:ro

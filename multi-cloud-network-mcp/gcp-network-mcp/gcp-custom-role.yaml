@@ -1,0 +1,84 @@
+# Least-privilege custom IAM role for gcp-network-mcp.
+#
+# Grants only the read-only ("get"/"list"-verb) permissions this server's
+# tools actually call -- never Owner, Editor, or a broad predefined
+# Viewer role. Create it with:
+#
+#   gcloud iam roles create gcpNetworkMcpReader \
+#     --project=YOUR_PROJECT_ID \
+#     --file=gcp-custom-role.yaml
+#
+# ...or at the organization level (recommended for the hierarchical
+# firewall policy tools, which are org/folder-scoped) with
+# `--organization=YOUR_ORG_ID` in place of `--project`. Bind it to the
+# service account this server runs as with a role binding scoped to
+# exactly the projects/folders/organization it needs to read -- never a
+# project-wide Owner/Editor grant.
+#
+# Every permission below follows GCP's documented "<service>.<resource>.get"/
+# "<service>.<resource>.list" naming convention for the resource types this
+# milestone's tools read. Verify this list against the current IAM
+# permissions reference (https://cloud.google.com/iam/docs/permissions-reference)
+# before granting in a production organization -- GCP occasionally
+# introduces a permission split (e.g. a separate ".getHealth" or
+# ".getStatus" permission alongside ".get") that a static list like this
+# one cannot self-verify against a live project.
+title: "GCP Network MCP Reader"
+description: >-
+  Read-only access to VPC networking resources for gcp-network-mcp:
+  networks, subnetworks, routes, firewall rules/policies, instance
+  connectivity metadata, addresses, load balancing resources, Cloud
+  Router/NAT, VPC peering, and Shared VPC relationships. Never grants
+  create/update/delete on any resource.
+stage: "GA"
+includedPermissions:
+  # Networks, subnetworks, routes
+  - compute.networks.get
+  - compute.networks.list
+  - compute.subnetworks.get
+  - compute.subnetworks.list
+  - compute.routes.get
+  - compute.routes.list
+
+  # Firewall rules and policies (hierarchical + network-scoped)
+  - compute.firewalls.get
+  - compute.firewalls.list
+  - compute.firewallPolicies.get
+  - compute.firewallPolicies.list
+  - compute.networkFirewallPolicies.get
+  - compute.networkFirewallPolicies.list
+
+  # Instance connectivity metadata
+  - compute.instances.get
+  - compute.instances.list
+
+  # Reserved addresses
+  - compute.addresses.get
+  - compute.addresses.list
+  - compute.globalAddresses.get
+  - compute.globalAddresses.list
+
+  # Load balancing: forwarding rules, target proxies, backend services
+  - compute.forwardingRules.get
+  - compute.forwardingRules.list
+  - compute.globalForwardingRules.get
+  - compute.globalForwardingRules.list
+  - compute.targetHttpProxies.get
+  - compute.targetHttpProxies.list
+  - compute.targetHttpsProxies.get
+  - compute.targetHttpsProxies.list
+  - compute.backendServices.get
+  - compute.backendServices.list
+  - compute.regionBackendServices.get
+  - compute.regionBackendServices.list
+
+  # Cloud Router / Cloud NAT (NAT config is embedded in Router)
+  - compute.routers.get
+  - compute.routers.list
+
+  # Shared VPC host/service-project discovery
+  - compute.projects.get
+
+  # Project/folder/organization discovery (gcp_list_permitted_projects)
+  - resourcemanager.projects.get
+  - resourcemanager.projects.list
