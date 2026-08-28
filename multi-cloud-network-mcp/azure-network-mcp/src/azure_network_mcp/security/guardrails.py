@@ -53,10 +53,23 @@ READ_ONLY_PREFIXES: tuple[str, ...] = ("get", "list")
 #   the NSG analog of the above -- computes which NSG rules actually apply
 #   to a NIC across subnet- and NIC-level associations. Read-only for the
 #   same reason.
+# - begin_get_bgp_peer_status (VirtualNetworkGatewaysOperations, Milestone 6):
+#   returns the current BGP session state for a classic (non-vWAN) VPN/
+#   ExpressRoute gateway's configured peers -- a live status read, not a
+#   configuration change. Explicitly requested by Milestone 6's "BGP
+#   settings and peer status" for Virtual Network Gateways.
+# - begin_list_advertised_routes / begin_list_learned_routes
+#   (VirtualHubBgpConnectionsOperations, Milestone 6): the vWAN-hub/Route
+#   Server analog of the above -- the routes a hub BGP connection has
+#   advertised to, or learned from, its peer. Explicitly requested by
+#   Milestone 6's "Azure Route Server and BGP peers/routes."
 READ_ONLY_ACTIONS: frozenset[str] = frozenset(
     {
         "begin_get_effective_route_table",
         "begin_list_effective_network_security_groups",
+        "begin_get_bgp_peer_status",
+        "begin_list_advertised_routes",
+        "begin_list_learned_routes",
     }
 )
 

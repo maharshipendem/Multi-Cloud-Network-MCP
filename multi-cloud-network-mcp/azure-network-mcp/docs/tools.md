@@ -1,6 +1,8 @@
 # Tools Reference
 
-All 19 tools are read-only. Every tool's MCP `meta` field carries
+All 67 tools are read-only (19 from Milestone 5, 48 from Milestone 6 —
+see [Milestone 6 tools](#milestone-6-tools) below). Every tool's MCP
+`meta` field carries
 `{"cloud": "azure", "read_only": true, "resource_types": [...]}` so a
 client (or a future multi-cloud federation layer) can confirm this
 without importing this codebase — see `tools/capabilities.py`.
@@ -243,6 +245,100 @@ VNet's own resource group. See
 **RBAC:** every read action listed above for virtual networks, subnets,
 NSGs, route tables, NAT gateways, network interfaces, public IPs, and
 peerings (this tool calls all of those service functions internally).
+
+## Milestone 6 tools
+
+All parameters named `subscription_id` fall back to
+`AZURE_DEFAULT_SUBSCRIPTION_ID` when omitted, exactly as in Milestone 5.
+`resource_group` is optional (omit to list across the whole subscription)
+unless marked **required** below. Full per-field schemas are in each
+tool's own docstring (`src/azure_network_mcp/tools/*.py`) — this table is
+a navigation aid, not a schema replacement.
+
+### Virtual WAN / Virtual Hub / Route Server
+
+| Tool | Purpose | Key parameters |
+|---|---|---|
+| `azure_list_virtual_wans` | List Virtual WANs | — |
+| `azure_list_virtual_hubs` | List Virtual Hubs (a hub with `sku="Standard"` and no vWAN is a standalone Route Server) | — |
+| `azure_list_hub_route_tables` | One hub's route tables and routes | `resource_group`\*, `virtual_hub_name`\* |
+| `azure_list_hub_virtual_network_connections` | One hub's VNet connections | `resource_group`\*, `virtual_hub_name`\* |
+| `azure_list_virtual_hub_bgp_connections` | One hub's BGP peers | `resource_group`\*, `virtual_hub_name`\* |
+| `azure_get_hub_bgp_connection_routes` | Advertised/learned routes for one hub BGP connection (read-only `begin_*`) | `resource_group`\*, `virtual_hub_name`\*, `connection_name`\*, `direction`\* |
+| `azure_list_route_maps` | One hub's routing-intent policies | `resource_group`\*, `virtual_hub_name`\* |
+| `azure_list_route_servers` | Standalone Route Servers (filtered Virtual Hubs) | — |
+| `azure_list_route_server_peers` | One Route Server's BGP peers | `resource_group`\*, `route_server_name`\* |
+| `azure_get_route_server_peer_routes` | Advertised/learned routes for one Route Server peer (read-only `begin_*`) | `resource_group`\*, `route_server_name`\*, `peer_connection_name`\*, `direction`\* |
+
+### VPN (vWAN-scoped and classic)
+
+| Tool | Purpose | Key parameters |
+|---|---|---|
+| `azure_list_vpn_gateways` | List vWAN VPN gateways | — |
+| `azure_list_vpn_sites` | List VPN sites (never includes `site_key`) | — |
+| `azure_list_vpn_connections` | One vWAN gateway's site connections (never includes `shared_key`) | `resource_group`\*, `vpn_gateway_name`\* |
+| `azure_list_virtual_network_gateways` | Classic (non-vWAN) VPN/ExpressRoute gateways | `resource_group`\* |
+| `azure_list_local_network_gateways` | Classic on-premises gateway definitions | `resource_group`\* |
+| `azure_list_virtual_network_gateway_connections` | Classic S2S/VNet-to-VNet/ExpressRoute connections (never includes `authorization_key`/`shared_key`) | `resource_group`\* |
+| `azure_get_bgp_peer_status` | Live BGP session state for a classic gateway's peers (read-only `begin_*`) | `resource_group`\*, `virtual_network_gateway_name`\* |
+
+### ExpressRoute
+
+| Tool | Purpose | Key parameters |
+|---|---|---|
+| `azure_list_express_route_circuits` | List circuits (never includes `authorization_key`/`service_key`) | — |
+| `azure_list_express_route_circuit_peerings` | One circuit's peerings (never includes `shared_key`) | `resource_group`\*, `circuit_name`\* |
+| `azure_list_express_route_circuit_connections` | One peering's Global Reach connections (never includes `authorization_key`) | `resource_group`\*, `circuit_name`\*, `peering_name`\* |
+| `azure_list_express_route_gateways` | List vWAN ExpressRoute gateways | — |
+| `azure_list_express_route_connections` | One gateway's circuit-peering connections (never includes `authorization_key`) | `resource_group`\*, `express_route_gateway_name`\* |
+| `azure_list_express_route_ports` | List ExpressRoute Direct ports | — |
+| `azure_list_express_route_links` | One port's physical fiber links | `resource_group`\*, `port_name`\* |
+
+### Private Link / Private DNS / DNS Resolver
+
+| Tool | Purpose | Key parameters |
+|---|---|---|
+| `azure_list_private_endpoints` | List Private Endpoints | — |
+| `azure_list_private_link_services` | List Private Link Services | — |
+| `azure_list_service_endpoint_policies` | List service endpoint policies | — |
+| `azure_list_private_dns_zones` | List Private DNS zones | — |
+| `azure_list_private_dns_virtual_network_links` | One zone's VNet links | `resource_group`\*, `zone_name`\* |
+| `azure_list_private_dns_record_sets` | One zone's record sets (bounded summary) | `resource_group`\*, `zone_name`\* |
+| `azure_list_dns_resolvers` | List Azure DNS Resolvers | — |
+| `azure_list_dns_resolver_inbound_endpoints` | One resolver's inbound endpoints | `resource_group`\*, `dns_resolver_name`\* |
+| `azure_list_dns_resolver_outbound_endpoints` | One resolver's outbound endpoints | `resource_group`\*, `dns_resolver_name`\* |
+| `azure_list_dns_forwarding_rulesets` | List DNS forwarding rulesets | — |
+| `azure_list_dns_forwarding_rules` | One ruleset's rules | `resource_group`\*, `ruleset_name`\* |
+| `azure_list_dns_forwarding_ruleset_virtual_network_links` | One ruleset's VNet links | `resource_group`\*, `ruleset_name`\* |
+
+### Azure Firewall / Network Watcher / Azure Monitor
+
+| Tool | Purpose | Key parameters |
+|---|---|---|
+| `azure_list_azure_firewalls` | List Azure Firewalls | — |
+| `azure_list_firewall_policies` | List firewall policies | — |
+| `azure_list_firewall_policy_rule_collection_groups` | One policy's rule collection groups (rule counts only) | `resource_group`\*, `firewall_policy_name`\* |
+| `azure_list_network_watchers` | List Network Watcher instances | — |
+| `azure_get_network_topology` | Azure's own native topology for one resource group (distinct from `azure_get_hybrid_topology`) | `resource_group`\*, `network_watcher_name`\*, `target_resource_group`\* |
+| `azure_list_connection_monitors` | One watcher's existing connection monitors (config + last status, never created/started) | `resource_group`\*, `network_watcher_name`\* |
+| `azure_list_flow_logs` | One watcher's VNet/NSG flow log configurations | `resource_group`\*, `network_watcher_name`\* |
+| `azure_get_network_metrics` | Bounded Azure Monitor metrics for one resource (fixed catalog, 24h lookback) | `resource_id`\* |
+
+### Diagnostics (deterministic engine)
+
+See [docs/rule_catalog.md](rule_catalog.md) for exactly what each
+underlying rule checks, and
+[docs/security.md#deterministic-evidence-bound-diagnostics](security.md#deterministic-evidence-bound-diagnostics)
+for the guarantees behind every `Finding`.
+
+| Tool | Purpose | Key parameters |
+|---|---|---|
+| `azure_get_hybrid_topology` | Resource-group-scoped hybrid connectivity graph (VNets, hubs, VPN, ExpressRoute) | `resource_group`\* |
+| `azure_explain_network_path` | Route (`ROUTE-001`) + NSG (`SEC-001`) evaluation for one source NIC → destination | `resource_group`\*, `network_interface_name`\*, `destination_ip`\*, `destination_port`\*, `protocol` |
+| `azure_find_network_risks` | Whole-resource-group risk scan (`EXPOSE-001`, `CONSIST-001`, `CONSIST-002`) | `resource_group`\*, `min_severity` |
+| `azure_get_network_health` | Degraded resources/connections + opt-in bounded metrics | `resource_group`\*, `include_metrics` |
+
+\* Required parameter.
 
 ## RBAC actions by tool
 

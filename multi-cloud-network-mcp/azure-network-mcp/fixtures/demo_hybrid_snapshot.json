@@ -1,0 +1,117 @@
+{
+  "subscription_id": "00000000-0000-0000-0000-000000000000",
+  "resource_group": "rg-demo-network",
+  "observed_at": "2026-01-01T00:00:00+00:00",
+  "virtual_networks": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/virtualNetworks/vnet-demo",
+      "name": "vnet-demo",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "location": "eastus",
+      "provisioning_state": "Succeeded",
+      "observed_at": "2026-01-01T00:00:00+00:00",
+      "address_space": ["10.0.0.0/16"]
+    }
+  ],
+  "network_security_groups": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/networkSecurityGroups/nsg-web",
+      "name": "nsg-web",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "location": "eastus",
+      "provisioning_state": "Succeeded",
+      "observed_at": "2026-01-01T00:00:00+00:00",
+      "security_rules": [
+        {
+          "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/networkSecurityGroups/nsg-web/securityRules/AllowSshFromAnywhere",
+          "name": "AllowSshFromAnywhere",
+          "subscription_id": "00000000-0000-0000-0000-000000000000",
+          "observed_at": "2026-01-01T00:00:00+00:00",
+          "direction": "Inbound",
+          "access": "Allow",
+          "priority": 100,
+          "protocol": "Tcp",
+          "source_address_prefix": "*",
+          "destination_port_range": "22"
+        }
+      ]
+    }
+  ],
+  "route_tables": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/routeTables/rt-demo",
+      "name": "rt-demo",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "location": "eastus",
+      "provisioning_state": "Succeeded",
+      "observed_at": "2026-01-01T00:00:00+00:00",
+      "routes": [
+        {
+          "name": "block-legacy-subnet",
+          "address_prefix": "10.0.9.0/24",
+          "next_hop_type": "None"
+        }
+      ]
+    }
+  ],
+  "network_interfaces": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/networkInterfaces/nic-web-1",
+      "name": "nic-web-1",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "location": "eastus",
+      "provisioning_state": "Succeeded",
+      "observed_at": "2026-01-01T00:00:00+00:00",
+      "network_security_group_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/networkSecurityGroups/nsg-web",
+      "ip_configurations": [
+        {
+          "name": "ipconfig1",
+          "private_ip_address": "10.0.1.4",
+          "subnet_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/virtualNetworks/vnet-demo/subnets/subnet-web",
+          "public_ip_address_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/publicIPAddresses/pip-web-1",
+          "primary": true
+        }
+      ]
+    }
+  ],
+  "public_ip_addresses": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/publicIPAddresses/pip-web-1",
+      "name": "pip-web-1",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "location": "eastus",
+      "provisioning_state": "Succeeded",
+      "observed_at": "2026-01-01T00:00:00+00:00",
+      "ip_address": "20.1.2.3",
+      "associated_resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/networkInterfaces/nic-web-1/ipConfigurations/ipconfig1"
+    }
+  ],
+  "vpn_gateways": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/vpnGateways/vpngw-demo",
+      "name": "vpngw-demo",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "location": "eastus",
+      "provisioning_state": "Succeeded",
+      "observed_at": "2026-01-01T00:00:00+00:00"
+    }
+  ],
+  "vpn_connections": [
+    {
+      "resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-network/providers/Microsoft.Network/vpnGateways/vpngw-demo/vpnConnections/conn-onprem",
+      "name": "conn-onprem",
+      "subscription_id": "00000000-0000-0000-0000-000000000000",
+      "resource_group": "rg-demo-network",
+      "observed_at": "2026-01-01T00:00:00+00:00",
+      "vpn_gateway_name": "vpngw-demo",
+      "connection_status": "Disconnected",
+      "redacted": true
+    }
+  ]
+}

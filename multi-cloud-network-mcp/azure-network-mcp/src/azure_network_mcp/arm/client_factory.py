@@ -13,7 +13,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from azure.mgmt.dnsresolver import DnsResolverManagementClient
+from azure.mgmt.monitor import MonitorManagementClient
 from azure.mgmt.network import NetworkManagementClient
+from azure.mgmt.privatedns import PrivateDnsManagementClient
 from azure.mgmt.resource.resources import ResourceManagementClient
 from azure.mgmt.subscription import SubscriptionClient
 
@@ -29,6 +32,9 @@ class ClientFactory:
         self._credential = get_shared_credential(settings)
         self._network_clients: dict[str, NetworkManagementClient] = {}
         self._resource_clients: dict[str, ResourceManagementClient] = {}
+        self._private_dns_clients: dict[str, PrivateDnsManagementClient] = {}
+        self._dns_resolver_clients: dict[str, DnsResolverManagementClient] = {}
+        self._monitor_clients: dict[str, MonitorManagementClient] = {}
         self._subscription_client: SubscriptionClient | None = None
         # This SDK's Subscription model carries no tenant_id field (some
         # newer ARM API versions add one; this one doesn't), so a
@@ -69,6 +75,36 @@ class ClientFactory:
                 self._credential, subscription_id, **self._client_kwargs()
             )
             self._resource_clients[subscription_id] = client
+        return client
+
+    def get_private_dns_client(self, subscription_id: str) -> PrivateDnsManagementClient:
+        self.subscription_context.assert_subscription_allowed(subscription_id)
+        client = self._private_dns_clients.get(subscription_id)
+        if client is None:
+            client = PrivateDnsManagementClient(
+                self._credential, subscription_id, **self._client_kwargs()
+            )
+            self._private_dns_clients[subscription_id] = client
+        return client
+
+    def get_dns_resolver_client(self, subscription_id: str) -> DnsResolverManagementClient:
+        self.subscription_context.assert_subscription_allowed(subscription_id)
+        client = self._dns_resolver_clients.get(subscription_id)
+        if client is None:
+            client = DnsResolverManagementClient(
+                self._credential, subscription_id, **self._client_kwargs()
+            )
+            self._dns_resolver_clients[subscription_id] = client
+        return client
+
+    def get_monitor_client(self, subscription_id: str) -> MonitorManagementClient:
+        self.subscription_context.assert_subscription_allowed(subscription_id)
+        client = self._monitor_clients.get(subscription_id)
+        if client is None:
+            client = MonitorManagementClient(
+                self._credential, subscription_id, **self._client_kwargs()
+            )
+            self._monitor_clients[subscription_id] = client
         return client
 
     def get_subscription_client(self) -> SubscriptionClient:

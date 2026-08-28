@@ -11,7 +11,7 @@ or bypass in any one layer does not, by itself, allow a mutation:
 AI Client
     |
     v
-MCP Tool Allowlist       -- only 19 tools exist; none accept
+MCP Tool Allowlist       -- only 67 tools exist; none accept
     |                        create/update/delete semantics
     v
 Application Guardrails   -- azure_network_mcp.security.guardrails rejects
@@ -33,11 +33,13 @@ accidentally added such a tool, `arm.readonly.call_readonly()` and
 `arm.pagination.paginate()` funnel every single Azure SDK call through
 `security.guardrails.assert_read_only_operation()`, which:
 
-1. Allows two explicitly named exceptions —
-   `begin_get_effective_route_table` and
-   `begin_list_effective_network_security_groups` — genuinely read-only
-   long-running *computations* that happen to use the SDK's `begin_`
-   prefix (see below).
+1. Allows five explicitly named exceptions —
+   `begin_get_effective_route_table`,
+   `begin_list_effective_network_security_groups`,
+   `begin_get_bgp_peer_status`, `begin_list_advertised_routes`, and
+   `begin_list_learned_routes` — genuinely read-only long-running
+   *computations* that happen to use the SDK's `begin_` prefix (see
+   below).
 2. Rejects any other method name containing a mutating keyword (`begin`,
    `create`, `update`, `delete`, `put`, `patch`, `move`, `swap`,
    `reserve`, `migrate`, `restart`, `reset`, `generate`, `rotate`,
@@ -50,7 +52,7 @@ boundary.** Keyword/prefix matching on a method name is a useful
 tripwire, not a proof of safety — it does not (and cannot) reason about
 what an operation *does*. The authoritative boundary is Azure RBAC.
 
-### Why `begin_*` needs two narrow exceptions
+### Why `begin_*` needs five narrow exceptions
 
 Azure's SDK convention differs from AWS's boto3 (which this project's AWS
 sibling, `aws-cloudops-mcp`, guards): a read operation is
@@ -71,8 +73,16 @@ simply take longer than a normal request:
   actually apply to a NIC across subnet- and NIC-level associations, with
   Application Security Group references expanded into concrete IP
   prefixes.
+- **`begin_get_bgp_peer_status`** (`VirtualNetworkGatewaysOperations`,
+  Milestone 6): returns the current BGP session state for a classic
+  (non-vWAN) VPN/ExpressRoute gateway's configured peers — a live status
+  read, not a configuration change.
+- **`begin_list_advertised_routes`** / **`begin_list_learned_routes`**
+  (`VirtualHubBgpConnectionsOperations`, Milestone 6): the vWAN-hub/Route
+  Server analog of the above — the routes a hub BGP connection has
+  advertised to, or learned from, its peer.
 
-Both are rejected by the guardrail's general `begin_` rule by default,
+All five are rejected by the guardrail's general `begin_` rule by default,
 then explicitly allowlisted — the same pattern this project's AWS sibling
 uses for `ec2:SearchTransitGatewayRoutes`/`cloudtrail:LookupEvents`, each
 a narrow, explicitly-reviewed exception for one genuinely read-only
@@ -181,6 +191,46 @@ their platform's secret manager (or, preferably, workload identity
 federation / managed identity requiring no static secret at all) rather
 than environment files.
 
+## Redaction
+
+Milestone 6 adds several Azure SDK models whose flattened attributes
+carry secret-shaped fields directly, unlike this project's AWS sibling's
+VPN pre-shared key (buried in an XML blob requiring explicit parsing to
+reach) — here `shared_key`, `site_key`, `authorization_key`, and
+`service_key` are plain object attributes on the very same response a
+`list`/`get` call already returns:
+
+| Field | Carried by | Never read in |
+|---|---|---|
+| `shared_key` | `VpnConnection`, `VpnSiteLinkConnection`, `ExpressRouteCircuitPeering`, `VirtualNetworkGatewayConnection` | `arm/vpn.py`, `arm/expressroute.py` |
+| `site_key` | `VpnSite` | `arm/vpn.py` |
+| `authorization_key` | `ExpressRouteCircuit`, `ExpressRouteCircuitConnection`, `ExpressRouteConnection`, `VirtualNetworkGatewayConnection` | `arm/vpn.py`, `arm/expressroute.py` |
+| `service_key` | `ExpressRouteCircuit` | `arm/expressroute.py` |
+
+This is redaction **by omission**, the same principle this project's AWS
+sibling established for VPN pre-shared keys and Direct Connect BGP
+authentication keys: a field that is never read cannot leak regardless of
+what the raw SDK response contains — not a post-processing scrub, which
+can miss an encoding variant or a future SDK response-shape change. Every
+model carrying one of these fields is stamped `redacted: bool = True` so
+a client can tell the record is intentionally incomplete rather than
+assume it saw everything.
+
+`ExpressRouteCircuitAuthorizationsOperations` (the operation group that
+manages circuit authorizations, whose responses embed the actual
+authorization key) is never called by any collector at all — there is
+simply no `arm/` function for it.
+
+**Statically enforced**, not just documented:
+`tests/unit/test_no_mutation_calls.py::test_no_arm_module_ever_reads_a_secret_shaped_field`
+scans every `arm/*.py` module's abstract syntax tree for an attribute
+access or `getattr(...)` call matching one of these names — a future
+collector that accidentally reads one of these fields fails this test
+before it fails in a real Azure account. `tests/unit/test_hybrid_connectivity.py`
+additionally asserts, per resource type, that a raw SDK mock carrying a
+deliberately obvious sentinel secret value never appears anywhere in that
+resource's normalized model output.
+
 ## No reachability claims
 
 `azure_get_vnet_topology` returns a **configuration and attachment
@@ -203,6 +253,60 @@ security state that would actually determine that.
 as *currently applied* to one network interface — a precise, single-NIC
 answer, not a path-level reachability verdict between two arbitrary
 endpoints.
+
+## Deterministic, evidence-bound diagnostics
+
+Milestone 6's diagnostics engine (`azure_network_mcp.diagnostics`) carries
+three guarantees, each directly answering a guardrail in the milestone's
+own spec — see [docs/rule_catalog.md](rule_catalog.md) for the full rule
+catalog these guarantees apply to:
+
+- **Never claims certainty with incomplete data.** Every diagnostic
+  conclusion is a `Finding` with an explicit `confidence` field, and
+  `"indeterminate"` is a first-class value, not an error state or a
+  silently-dropped result. A rule that cannot conclusively evaluate
+  something it needs (an NSG missing from the collected snapshot, a
+  route whose next hop leaves this tool's visibility, a route resolvable
+  only via a resource outside the analyzed resource group) says so via
+  `confidence: "indeterminate"` plus `limitations` naming exactly what
+  was missing.
+- **The core result is always deterministic Python logic, never an LLM
+  judgment call.** Every function under `diagnostics.*` is a pure
+  function of its `HybridNetworkSnapshot` (or, for
+  `azure_explain_network_path`, per-NIC effective route/NSG data) input:
+  CIDR longest-prefix-match route resolution, NSG rule priority
+  evaluation, and every other check is ordinary, golden-testable code
+  with no model call anywhere in the decision path. An AI client
+  consuming a `Finding` may summarize or explain it in natural language,
+  but the `severity`, `confidence`, and `summary` it's explaining were
+  decided before that client ever saw the data.
+- **`remediation` is advisory text only, never executed.** No code path
+  anywhere in this repository takes a `Finding.remediation` string and
+  acts on it — there is no "apply this fix" tool, and this milestone adds
+  none. A client presenting a finding to a user must not describe a
+  remediation suggestion as something that has been done.
+
+`azure_get_hybrid_topology`, like `azure_get_vnet_topology` before it,
+returns a configuration and attachment graph — see
+[No reachability claims](#no-reachability-claims) below.
+`azure_explain_network_path` is the deliberate, narrower exception to
+"topology alone": it actually evaluates effective route resolution and
+NSG rules together, and only claims `"allowed"` when it had enough
+evidence to evaluate both layers — see `overall_verdict` in
+[docs/rule_catalog.md](rule_catalog.md).
+
+## Guardrails: Network Watcher and diagnostic tooling
+
+This milestone never creates, starts, or stops a Network Watcher,
+connection monitor, troubleshooter, or packet capture — every function
+under `arm/network_watcher.py` calls only `get`/`list` operations (plus
+`get_topology`, a POST-shaped read that takes a request body scoping the
+query, not creating anything) against resources that already exist.
+`begin_get_troubleshooting` (starts a new troubleshooting run) and every
+`begin_*_packet_capture*` method are never called and are not in
+`READ_ONLY_ACTIONS` — they are rejected by the guardrail's default
+`begin_` rule like any other unreviewed method. See
+[docs/limitations.md](limitations.md) for what this excludes.
 
 ## Error handling
 

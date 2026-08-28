@@ -15,16 +15,19 @@ envelope shape), never its code.
 
 ## Current milestone
 
-**Milestone 5 — Azure Network MCP Foundation (read-only).** See
-[MILESTONE5_STATUS.md](MILESTONE5_STATUS.md) for the detailed status
-report.
+**Milestone 6 — Azure Advanced Networking and Diagnostics (read-only).**
+See [MILESTONE6_STATUS.md](MILESTONE6_STATUS.md) (and
+[MILESTONE5_STATUS.md](MILESTONE5_STATUS.md) for the foundation this
+builds on) for detailed status reports.
 
-Implemented:
+Implemented across both milestones:
 
 - MCP server foundation (stdio transport, layered architecture)
 - Azure Resource Manager (ARM) integration via `azure-mgmt-network`,
-  `azure-mgmt-resource`, and `azure-mgmt-subscription`, with a
-  centralized, per-subscription-caching client factory
+  `azure-mgmt-resource`, `azure-mgmt-subscription`,
+  `azure-mgmt-privatedns`, `azure-mgmt-dnsresolver`, and
+  `azure-mgmt-monitor`, with a centralized, per-subscription-caching
+  client factory
 - Credential resolution via `azure.identity.DefaultAzureCredential`
   (workload identity federation, managed identity, service principal env
   vars, or an `az login` session) — never a hard-coded or tool-supplied
@@ -34,40 +37,44 @@ Implemented:
 - Structured JSON logging with per-request correlation IDs
 - A read-only security guardrail layer, independent of Azure RBAC —
   every ARM SDK call is asserted read-only before it reaches Azure,
-  including two narrow, explicitly-justified exceptions for the SDK's
-  `begin_*`-prefixed effective-route-table/effective-NSG computations
-  (long-running reads, not mutations)
-- A deterministic `azure_get_vnet_topology` tool: a typed node/edge graph
-  for one virtual network, with evidence on every edge, stable
-  cross-call ordering, and explicit completeness warnings for anything
-  outside its resource-group scope
-- Nineteen MCP tools (see [docs/tools.md](docs/tools.md)):
-  - `azure_get_caller_identity`
-  - `azure_list_subscriptions`, `azure_list_tenants`, `azure_list_locations`
-  - `azure_list_resource_groups`
-  - `azure_list_virtual_networks`, `azure_list_subnets`
-  - `azure_list_route_tables`, `azure_get_effective_route_table`
-  - `azure_list_network_security_groups`, `azure_list_security_rules`,
-    `azure_get_effective_network_security_groups`
-  - `azure_list_network_interfaces`, `azure_list_public_ip_addresses`
-  - `azure_list_virtual_network_peerings`
-  - `azure_list_nat_gateways`
-  - `azure_list_load_balancers`, `azure_list_application_gateways`
-  - `azure_get_vnet_topology`
+  including five narrow, explicitly-justified exceptions for the SDK's
+  `begin_*`-prefixed effective-route-table/effective-NSG/BGP-peer-status/
+  advertised-and-learned-routes computations (long-running reads, not
+  mutations)
+- Redaction by omission for every secret-shaped field Azure's SDK embeds
+  directly on a list/get response (VPN pre-shared keys, ExpressRoute
+  authorization/service keys) — statically enforced, not just documented
+  — see [docs/security.md#redaction](docs/security.md#redaction)
+- Two deterministic topology tools (`azure_get_vnet_topology`,
+  `azure_get_hybrid_topology`) and a full diagnostics engine
+  (`azure_explain_network_path`, `azure_find_network_risks`,
+  `azure_get_network_health`) built on a five-rule catalog — see
+  [docs/rule_catalog.md](docs/rule_catalog.md)
+- 67 MCP tools total (19 from Milestone 5, 48 from Milestone 6) spanning
+  identity, subscriptions, resource groups, core VNet networking, Virtual
+  WAN/Virtual Hub/Route Server, VPN (vWAN and classic), ExpressRoute,
+  Private Link, Private DNS/DNS Resolver, Azure Firewall, Network
+  Watcher, Azure Monitor metrics, and the diagnostics engine — see
+  [docs/tools.md](docs/tools.md) for the full list
 - Capability metadata (`{"cloud": "azure", "read_only": true,
   "resource_types": [...]}`) on every tool for future multi-cloud
   federation discovery
-- 175 unit tests (98%+ line coverage), all offline — no moto-equivalent
+- 300+ unit tests (95%+ line coverage), all offline — no moto-equivalent
   exists for Azure, so every ARM SDK operation-group method is
   monkeypatched directly (see [docs/development.md](docs/development.md))
-  — and an opt-in integration test suite
+  — plus an offline diagnostics dry-run mode
+  ([fixtures/demo_hybrid_snapshot.json](fixtures/demo_hybrid_snapshot.json))
+  and an opt-in integration test suite
 - Docker image and docker-compose for local development
 
-Not implemented (out of scope for this milestone, by design): any
-infrastructure-**mutating** capability, AWS/GCP integration or
-cross-cloud federation code, VPN Gateway / ExpressRoute / Private
-Endpoint / DNS visibility, Network Watcher actions that create
-persistent resources, or Azure Firewall / Front Door / CDN visibility.
+Not implemented (out of scope, by design — see
+[docs/limitations.md](docs/limitations.md) for the reasoning behind
+each): any infrastructure-**mutating** capability, AWS/GCP integration
+or cross-cloud federation code, Network Watcher actions that create
+persistent resources or run a new diagnostic (troubleshooting,
+configuration diagnostics, packet capture), ExpressRoute circuit
+authorizations, Connection Monitor time-series data, or Azure Firewall /
+Front Door / CDN inventory beyond firewall and firewall-policy summaries.
 
 ## Architecture
 
@@ -238,12 +245,15 @@ image. See [docs/development.md](docs/development.md) for details.
 ## Roadmap
 
 Future Azure MCP milestones (not implemented here, but the architecture
-is designed to accommodate them without a rewrite): VPN Gateway /
-ExpressRoute visibility, Private Endpoint / Private Link visibility,
-Azure Firewall and Front Door, DNS zones, and deeper network
-troubleshooting/diagnostics analogous to `aws-cloudops-mcp`'s
-diagnostics engine. A multi-cloud federation/orchestration layer sitting
-above the AWS/Azure/GCP MCP servers is planned as a separate project.
+is designed to accommodate them without a rewrite): Azure Front Door and
+CDN, DNS zone (public) visibility, deeper Network Watcher diagnostics
+(configuration diagnostics, troubleshooting-result retrieval), Connection
+Monitor time-series data, and richer firewall-policy rule detail beyond
+per-collection summaries. A cross-cloud data contract unifying this
+repository with `aws-cloudops-mcp` is explicitly deferred to a future
+milestone (see [docs/limitations.md](docs/limitations.md)); a multi-cloud
+federation/orchestration layer sitting above the AWS/Azure/GCP MCP
+servers is planned as a separate project.
 
 ## License
 

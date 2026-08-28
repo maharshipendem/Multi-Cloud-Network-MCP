@@ -41,4 +41,19 @@ class VnetTopology(BaseModel):
     api_call_count: int = 0
 
 
-__all__ = ["TopologyEdge", "TopologyNode", "VnetTopology"]
+class HybridTopology(BaseModel):
+    """Typed node/edge graph for ``azure_get_hybrid_topology`` -- a whole
+    resource group's VNets joined with vWAN hubs, VPN gateways/
+    connections, and ExpressRoute circuits/gateways/connections, produced
+    by ``diagnostics.hybrid_topology``. Broader in scope than
+    ``VnetTopology`` (many VNets, hybrid connectivity included) but the
+    same node/edge/evidence contract."""
+
+    resource_group: str
+    subscription_id: str
+    nodes: list[TopologyNode] = Field(default_factory=list)
+    edges: list[TopologyEdge] = Field(default_factory=list)
+    warnings: list[CollectionWarning] = Field(default_factory=list)
+
+
+__all__ = ["HybridTopology", "TopologyEdge", "TopologyNode", "VnetTopology"]

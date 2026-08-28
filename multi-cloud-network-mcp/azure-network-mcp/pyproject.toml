@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "azure-network-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Production-quality, read-only Model Context Protocol (MCP) server for Azure network operations."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -24,6 +24,9 @@ dependencies = [
     "azure-mgmt-network>=28.0.0",
     "azure-mgmt-resource>=23.0.0",
     "azure-mgmt-subscription>=3.1.0",
+    "azure-mgmt-privatedns>=1.1.0",
+    "azure-mgmt-dnsresolver>=1.1.0",
+    "azure-mgmt-monitor>=6.0.0",
     "azure-core>=1.32.0",
     "pydantic>=2.7.0",
     "pydantic-settings>=2.4.0",
