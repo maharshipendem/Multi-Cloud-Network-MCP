@@ -1,0 +1,88 @@
+{
+  "project_id": "demo-project-123456",
+  "observed_at": "2026-08-27T00:00:00+00:00",
+  "completeness": "partial",
+  "nodes": [
+    {
+      "node_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/regions/us-central1/routers/demo-router",
+      "node_type": "router",
+      "label": "demo-router",
+      "project_id": "demo-project-123456",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {}
+    },
+    {
+      "node_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/global/networks/demo-vpc",
+      "node_type": "network",
+      "label": "demo-vpc",
+      "project_id": "demo-project-123456",
+      "region": null,
+      "zone": null,
+      "labels": {}
+    },
+    {
+      "node_id": "https://www.googleapis.com/compute/v1/projects/other-project-999999/global/networks/peer-vpc",
+      "node_type": "external_network",
+      "label": "https://www.googleapis.com/compute/v1/projects/other-project-999999/global/networks/peer-vpc",
+      "project_id": null,
+      "region": null,
+      "zone": null,
+      "labels": {}
+    },
+    {
+      "node_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/zones/us-central1-a/instances/demo-vm",
+      "node_type": "instance",
+      "label": "demo-vm",
+      "project_id": "demo-project-123456",
+      "region": null,
+      "zone": "us-central1-a",
+      "labels": {}
+    },
+    {
+      "node_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/regions/us-central1/subnetworks/demo-subnet",
+      "node_type": "subnetwork",
+      "label": "demo-subnet",
+      "project_id": "demo-project-123456",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {}
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/regions/us-central1/routers/demo-router",
+      "target_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/global/networks/demo-vpc",
+      "relationship": "attached_to_network",
+      "evidence": "router demo-router.network=https://www.googleapis.com/compute/v1/projects/demo-project-123456/global/networks/demo-vpc"
+    },
+    {
+      "source_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/global/networks/demo-vpc",
+      "target_id": "https://www.googleapis.com/compute/v1/projects/other-project-999999/global/networks/peer-vpc",
+      "relationship": "peered_with",
+      "evidence": "peering demo-vpc-to-peer-vpc state=ACTIVE"
+    },
+    {
+      "source_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/zones/us-central1-a/instances/demo-vm",
+      "target_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/regions/us-central1/subnetworks/demo-subnet",
+      "relationship": "has_interface_in",
+      "evidence": "instance demo-vm networkInterfaces[nic0].subnetwork=https://www.googleapis.com/compute/v1/projects/demo-project-123456/regions/us-central1/subnetworks/demo-subnet"
+    },
+    {
+      "source_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/regions/us-central1/subnetworks/demo-subnet",
+      "target_id": "https://www.googleapis.com/compute/v1/projects/demo-project-123456/global/networks/demo-vpc",
+      "relationship": "belongs_to_network",
+      "evidence": "subnetwork demo-subnet.network=https://www.googleapis.com/compute/v1/projects/demo-project-123456/global/networks/demo-vpc"
+    }
+  ],
+  "warnings": [
+    {
+      "resource_type": "network",
+      "code": "OUT_OF_SCOPE_TARGET",
+      "message": "Peering demo-vpc-to-peer-vpc references peer network https://www.googleapis.com/compute/v1/projects/other-project-999999/global/networks/peer-vpc, outside this topology's single-project scope -- represented as an external node with no further detail.",
+      "project_id": "demo-project-123456",
+      "scope": null
+    }
+  ],
+  "api_call_count": 5
+}
