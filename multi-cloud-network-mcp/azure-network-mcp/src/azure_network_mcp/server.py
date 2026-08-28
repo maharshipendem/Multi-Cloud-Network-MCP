@@ -15,18 +15,28 @@ from azure_network_mcp.auth.session import SubscriptionContext
 from azure_network_mcp.config import Settings, get_settings
 from azure_network_mcp.logging.setup import configure_logging, get_logger
 from azure_network_mcp.tools import (
+    diagnostics,
+    expressroute,
+    firewall,
     identity,
     load_balancers,
+    monitor,
     nat_gateways,
     network_interfaces,
     network_security_groups,
+    network_watcher,
     networking,
     peerings,
+    private_dns,
+    private_link,
     public_ips,
     resource_groups,
+    route_server,
     route_tables,
     subscriptions,
     topology,
+    virtual_wan,
+    vpn,
 )
 
 _logger = get_logger(__name__)
@@ -54,6 +64,16 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     nat_gateways.register(mcp, client_factory)
     load_balancers.register(mcp, client_factory)
     topology.register(mcp, client_factory)
+    virtual_wan.register(mcp, client_factory)
+    route_server.register(mcp, client_factory)
+    vpn.register(mcp, client_factory)
+    expressroute.register(mcp, client_factory)
+    private_link.register(mcp, client_factory)
+    private_dns.register(mcp, client_factory)
+    firewall.register(mcp, client_factory)
+    network_watcher.register(mcp, client_factory)
+    monitor.register(mcp, client_factory)
+    diagnostics.register(mcp, client_factory)
 
     _logger.info(
         "server initialized",

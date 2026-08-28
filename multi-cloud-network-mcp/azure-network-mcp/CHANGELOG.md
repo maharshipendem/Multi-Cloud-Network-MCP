@@ -5,6 +5,103 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - Milestone 6 - Azure Advanced Networking and Diagnostics
+
+### Added
+
+- ARM service-layer and MCP-tool coverage for hybrid connectivity: Virtual
+  WAN/Virtual Hub (including hub route tables/routes, hub VNet
+  connections, hub BGP connections, and routing-intent route maps),
+  standalone Azure Route Server (`arm/route_server.py`, a filtered view
+  over Virtual Hub), VPN (both vWAN-scoped `VpnGateway`/`VpnSite`/
+  `VpnConnection` and classic `VirtualNetworkGateway`/
+  `LocalNetworkGateway`/`VirtualNetworkGatewayConnection`), and
+  ExpressRoute (circuits, peerings, circuit-to-circuit connections,
+  vWAN ExpressRoute gateways/connections, Direct ports and links).
+- ARM service-layer and MCP-tool coverage for Private Link (Private
+  Endpoints, Private Link Services, service endpoint policies), Private
+  DNS (zones, VNet links, bounded record-set summaries) and Azure DNS
+  Resolver (inbound/outbound endpoints, forwarding rulesets/rules/VNet
+  links), Azure Firewall (firewall and firewall-policy inventory with
+  bounded per-collection rule-count summaries), and read-only Network
+  Watcher (native topology, existing connection monitors, VNet/NSG flow
+  log configuration — never creates/starts/stops any of them).
+- Bounded Azure Monitor metric queries (`arm/monitor.py`) against a fixed,
+  network-relevant metric catalog per resource type, capped to a 24-hour
+  lookback and 288 datapoints per series — mirrors the AWS sibling's
+  bounded CloudWatch integration.
+- A new, ARM-independent diagnostics engine
+  (`azure_network_mcp.diagnostics`): a five-rule catalog
+  (`ROUTE-001` effective-route resolution, `SEC-001` effective-NSG rule
+  evaluation, `EXPOSE-001` internet exposure, `CONSIST-001` degraded
+  resource/connection state, `CONSIST-002` blackhole/orphaned UDRs — see
+  [docs/rule_catalog.md](docs/rule_catalog.md)), leaning on Azure's own
+  effective-route-table/effective-NSG computations rather than
+  reimplementing route/security-group evaluation from scratch. Every
+  `Finding` carries `severity`/`confidence`/`evidence`/`reasoning`/
+  `assumptions`/`limitations`/`freshness`, with `confidence:
+  "indeterminate"` as a first-class outcome, never an omission.
+- Four new diagnostics tools: `azure_get_hybrid_topology` (resource-group-
+  scoped hybrid connectivity graph joining VNets/hubs/VPN/ExpressRoute),
+  `azure_explain_network_path` (route + NSG evaluation for one source NIC
+  toward a destination, `overall_verdict` never silently upgraded to
+  `"allowed"` on incomplete evidence), `azure_find_network_risks`
+  (whole-resource-group risk scan), and `azure_get_network_health`
+  (degraded resources/connections plus opt-in bounded metrics).
+- `diagnostics/offline.py::load_snapshot_from_file` — an offline dry-run
+  mode running the same risk/topology/consistency functions against a
+  saved, sanitized `HybridNetworkSnapshot` JSON with zero Azure calls; see
+  [fixtures/demo_hybrid_snapshot.json](fixtures/demo_hybrid_snapshot.json).
+- `security.guardrails.READ_ONLY_ACTIONS` gained three more explicitly
+  justified `begin_*` exceptions:
+  `begin_get_bgp_peer_status` (classic gateway BGP peer status),
+  `begin_list_advertised_routes`/`begin_list_learned_routes` (hub/Route
+  Server BGP peer routes) — each a genuinely read-only computation, not a
+  loosening of the read-only rule.
+- Redaction by omission for every secret-shaped SDK field this
+  milestone's new resource types embed directly (`shared_key`,
+  `site_key`, `authorization_key`, `service_key` on `VpnConnection`,
+  `VpnSite`, `ExpressRouteCircuit`, `ExpressRouteCircuitPeering`,
+  `ExpressRouteCircuitConnection`, `ExpressRouteConnection`,
+  `VirtualNetworkGatewayConnection`) — never read by any collector, and
+  `ExpressRouteCircuitAuthorizationsOperations` (which manages the actual
+  authorization key) is never called at all. Statically enforced by
+  `tests/unit/test_no_mutation_calls.py::test_no_arm_module_ever_reads_a_secret_shaped_field`.
+- 48 new MCP tools (67 total), each with `capability_meta()` and a
+  non-empty description; 110+ new unit tests (300+ total, 95%+ line
+  coverage), including scenario-specific coverage for vWAN route
+  propagation, custom hub routes, S2S VPN/BGP degradation, ExpressRoute
+  states, Private Endpoint/subnet joins, Route Server peers, asymmetric/
+  orphaned UDRs, NSG priority/default-rule evaluation, public exposure,
+  partial RBAC, unsupported region/API version, throttling, and stale
+  metrics — plus a dedicated end-to-end MCP smoke-test suite
+  (`tests/unit/test_mcp_smoke_milestone6.py`) covering every new tool
+  through the real `call_tool()` path.
+- `azure-custom-role.json` extended with every read action (and the three
+  new `/action` computations) this milestone's tools need.
+- New docs: [docs/rule_catalog.md](docs/rule_catalog.md),
+  [docs/limitations.md](docs/limitations.md),
+  [docs/troubleshooting.md](docs/troubleshooting.md); `docs/architecture.md`,
+  `docs/security.md`, and `docs/tools.md` extended for the diagnostics
+  engine, the three new guardrail exceptions, redaction, and all 48 new
+  tools.
+
+### Scope decisions (disclosed, not silent gaps — see [docs/limitations.md](docs/limitations.md))
+
+- Network Watcher's `begin_get_network_configuration_diagnostic` and
+  `begin_get_troubleshooting_result` are not implemented: their method
+  names are easily confused with genuinely mutating operations
+  (`begin_get_troubleshooting` *starts* a run), so per this milestone's
+  own stop condition ("an SDK operation has unclear mutation semantics"),
+  neither is implemented.
+- Connection Monitor time-series data points are out of scope (they live
+  in Azure Monitor Logs, a distinct capability); only configuration and
+  last-known status are returned.
+- `EXPOSE-001` evaluates a NIC's *configured* NSG rules rather than
+  Azure's per-NIC effective-rule computation, to avoid an unbounded
+  fan-out across every internet-facing NIC in a resource group; this
+  assumption is disclosed on every `EXPOSE-001` finding.
+
 ## [0.1.0] - Milestone 5 - Azure Network MCP Foundation
 
 ### Added
