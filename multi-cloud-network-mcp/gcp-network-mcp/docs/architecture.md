@@ -106,3 +106,131 @@ carries a second, module-level translation as a safety net for any raw
 `google.api_core`/`google.auth` exception that reaches the tool layer
 without having passed through `gcp/pagination.py`/`gcp/readonly.py`
 first.
+
+## Milestone 8: three more client-library shapes
+
+Milestone 8 adds five more provider libraries
+(`networkconnectivity_v1`, `network_management_v1`, `google.cloud.dns`,
+`logging_v2`, `monitoring_v3`), each constructed exclusively through
+`ClientFactory` like every M7 client — but they don't all share M7's
+`compute_v1` assumptions:
+
+- **Enum representation.** `networkconnectivity_v1` (a newer gapic
+  client generation) represents state/type fields as genuine typed
+  Python enums requiring `.name` access — and unconditionally, never
+  gated on truthiness (`x.name if x else None` is a bug: a proto-plus
+  enum's unset value is int `0`, which is Python-falsy, but it is still
+  a real, named enum member). `compute_v1` represents the equivalent
+  fields as plain strings. Every M8 normalizer was written by
+  introspecting the live field type first, not by assuming M7's pattern
+  held.
+- **`paginate_with_unreachable()`** (`gcp/pagination.py`) is a third
+  pagination primitive, for `List*Response` shapes that carry a
+  top-level `unreachable` field distinct from `paginate_aggregated()`'s
+  per-page `unreachables` (NCC's `HubService` list calls all follow this
+  shape).
+- **`google.cloud.dns` is not a gapic client.** It's the only
+  Google-published Python client for Cloud DNS, a legacy hand-written
+  library using `google.api_core.page_iterator.HTTPIterator` (pages are
+  directly iterable — no named items field) and constructed *per
+  project* (`dns.Client(project=..., credentials=...)`), unlike every
+  other client here (built once per process, `project` passed per
+  call). `ClientFactory.dns_client(project_id)` caches one instance per
+  project ID in a separate dict from the shared `_clients` cache;
+  `gcp/dns.py::_paginate_legacy()` is a bespoke walker that does not
+  reuse `gcp/pagination.py`.
+- **gapic `request=` and flattened kwargs are mutually exclusive.**
+  Empirically confirmed: a gapic method raises `ValueError` if given
+  both a `request=` object and any flattened field kwarg. `page_size`
+  has no flattened-kwarg equivalent for `ListLogEntriesRequest`, so
+  `gcp/observability.py::query_logs` builds one complete request object
+  and passes only `request=`.
+
+## Diagnostics engine
+
+`diagnostics/` is a self-contained package of pure functions over
+already-collected data — nothing in `diagnostics/*.py` except
+`diagnostics/snapshot.py` imports from `gcp/*.py`. Layering:
+
+```
+diagnostics/models.py     Severity, Confidence (incl. "indeterminate"),
+                           Evidence, ReasoningStep, Finding, RuleMetadata,
+                           register_rule()/rule_catalog()/get_rule() -- a
+                           versioned rule registry every rule module
+                           registers into at import time.
+
+diagnostics/snapshot.py   The ONLY seam between diagnostics/* and gcp/*.
+                           collect_hybrid_snapshot() builds one
+                           HybridNetworkSnapshot per (project_id,
+                           hierarchical_firewall_parent_id) pair; every
+                           downstream rule/graph/report function is a
+                           pure function of this one model.
+
+diagnostics/routing.py    ROUTE-001 (route resolution), ROUTE-002 (CIDR
+diagnostics/firewall.py   overlap); FW-001 (firewall evaluation),
+diagnostics/peering.py    FW-002 (hierarchical policy interaction);
+diagnostics/ncc.py        PEER-001; NCC-001; NAT-001; EXPOSE-001;
+diagnostics/nat.py        HYBRID-001/002/003 (VPN/Interconnect/BGP
+diagnostics/exposure.py   health); DNS-001 -- 12 rules total, each a
+diagnostics/hybrid.py     pure function returning zero or more Finding
+diagnostics/dns.py        objects. See rule_catalog.md for the full list.
+
+diagnostics/hybrid_topology.py  build_hybrid_topology() -- joins the
+                                 snapshot into a typed node/edge graph
+                                 (HybridTopology), mirroring M7's
+                                 VpcTopology contract but scoped to
+                                 hybrid connectivity.
+
+diagnostics/explain.py    explain_network_path() -- runs the route +
+                           firewall (network + hierarchical) rules for
+                           one source network / destination tuple and
+                           derives one overall_verdict.
+
+diagnostics/risks.py      find_network_risks() -- runs every rule
+                           against the snapshot and returns every
+                           Finding, unfiltered.
+
+diagnostics/health.py     get_network_health() -- aggregates
+                           find_network_risks()'s output into
+                           finding_counts_by_severity + an
+                           overall_status derived from severity
+                           thresholds, plus a resource inventory count.
+
+diagnostics/offline.py    load_snapshot()/analyze_offline_snapshot() --
+                           runs the full engine against a
+                           previously-saved, sanitized snapshot with
+                           zero live GCP calls.
+```
+
+Every `Finding` carries `severity`, `confidence` (including the literal
+`"indeterminate"` value for unknown fabric behavior or incomplete policy
+visibility — never a false certainty), `evidence`, `assumptions`, and
+`limitations`. Rules that depend on data no client library exposes (Cloud
+DNS's forwarding-chain configuration, in `DNS-001`) are written to return
+`confidence="indeterminate"` for that aspect by design, not as an
+afterthought.
+
+### Partial-collection resilience
+
+`collect_hybrid_snapshot()` routes **every** resource-family collection
+— including ones whose underlying `gcp/*.py` function already returns a
+`CollectionResult`/warnings pair — through one internal `_collect()`
+closure that catches any exception the call raises (e.g. a disabled API
+translating to `ApiNotEnabledError`) and downgrades it to a
+`CollectionWarning` (`code="COLLECTION_FAILED"`) rather than letting it
+abort the whole snapshot. A `CollectionResult`'s own warning surfacing
+only covers warnings its underlying `paginate()`/`paginate_aggregated()`
+call generates internally — it does **not** protect against the call
+itself raising, so `_collect()` must wrap the call site, not just consume
+its return value. This is what makes all four diagnostics tools return
+partial results instead of a total failure when e.g. NCC or VPN is
+disabled on the target project — the same contract `gcp/pagination.py`
+enforces at the collection layer, extended to the diagnostics layer's
+own fan-out.
+
+### Topology assembly (hybrid)
+
+`build_hybrid_topology()` follows the exact same discipline as M7's
+`get_vpc_topology()` (see above): an unresolved reference still produces
+an edge with no matching node plus an `OUT_OF_SCOPE_TARGET` warning, and
+completeness is never silently `"complete"` when a warning exists.

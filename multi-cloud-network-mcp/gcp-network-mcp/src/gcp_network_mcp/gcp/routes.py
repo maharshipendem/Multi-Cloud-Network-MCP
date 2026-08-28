@@ -10,7 +10,10 @@ from gcp_network_mcp.gcp.pagination import paginate
 from gcp_network_mcp.models.routes import NEXT_HOP_FIELD_TYPES, Route
 
 
-def _derive_next_hop(route: compute_v1.Route) -> tuple[str, str | None]:
+def derive_next_hop(route: compute_v1.Route) -> tuple[str, str | None]:
+    """Shared by ``gcp/bgp.py``'s best-route normalization -- the
+    next-hop-field convention is the same for a plain Route and a
+    RouterStatus best-route entry (both are ``compute_v1.Route`` messages)."""
     for field_name, next_hop_type in NEXT_HOP_FIELD_TYPES.items():
         value = getattr(route, field_name, "")
         if value:
@@ -19,7 +22,7 @@ def _derive_next_hop(route: compute_v1.Route) -> tuple[str, str | None]:
 
 
 def normalize_route(route: compute_v1.Route, *, project_id: str) -> Route:
-    next_hop_type, next_hop_target = _derive_next_hop(route)
+    next_hop_type, next_hop_target = derive_next_hop(route)
     return Route(
         self_link=route.self_link or None,
         id=str(route.id) if route.id else None,
@@ -51,4 +54,4 @@ def list_routes(client_factory: ClientFactory, *, project_id: str) -> list[Route
     return [normalize_route(r, project_id=project_id) for r in raw]
 
 
-__all__ = ["list_routes", "normalize_route"]
+__all__ = ["derive_next_hop", "list_routes", "normalize_route"]

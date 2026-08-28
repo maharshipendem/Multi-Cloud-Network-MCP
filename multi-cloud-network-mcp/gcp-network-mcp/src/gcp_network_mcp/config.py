@@ -51,6 +51,21 @@ class Settings(BaseSettings):
     max_fanout_calls: int = 50
     max_concurrency: int = 10
 
+    # Milestone 8: Cloud Logging/Monitoring are explicit-opt-in, narrowly
+    # bounded tools (never a general-purpose log/metric browser) -- these
+    # caps apply regardless of what a caller requests, so a single tool
+    # call can never return an unbounded amount of log/metric data.
+    max_log_entries: int = 200
+    max_log_query_window_hours: float = 24.0
+    max_time_series_points: int = 1440  # 24h at 1-minute resolution
+    max_metric_query_window_hours: float = 24.0
+
+    # Milestone 8: bounds the diagnostics engine's own collection fan-out
+    # (e.g. per-router BGP peer detail calls, per-VPN-gateway status
+    # calls) independent of max_fanout_calls, which bounds the plain
+    # inventory tools' fan-out.
+    max_diagnostics_fanout: int = 50
+
     @property
     def project_allowlist(self) -> list[str] | None:
         if not self.gcp_project_allowlist:

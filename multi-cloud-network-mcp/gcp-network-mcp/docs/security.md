@@ -105,6 +105,64 @@ API call is made. Leaving them unset means "whatever the configured
 identity's IAM bindings permit," matching how this project's AWS/Azure
 siblings default to IAM/RBAC-only scoping.
 
+## Redaction by omission (Milestone 8)
+
+`VpnTunnel.shared_secret`/`shared_secret_hash` and
+`InterconnectAttachment.pairing_key` are secrets the raw GCP API response
+carries but this server's normalizers **never read** — not "read and
+strip," genuinely never accessed. Both models carry a `redacted: true`
+field documenting this as a permanent property of the model, not a
+runtime toggle. Verified by tests that construct a raw SDK object with a
+real secret value set, normalize it, and assert the literal secret string
+does not appear anywhere in the normalized model's string representation
+— a stronger proof than "the field doesn't exist on the model," since it
+also catches an accidental leak through an unrelated field (e.g. a debug
+`raw_response` passthrough).
+
+Cloud Interconnect and Private Service Connect tools return operational
+and provisioning metadata only — attachment state, VLAN tag, bandwidth,
+diagnostics — never a pairing key, shared secret, or any other
+credential-shaped value.
+
+## Bounded observability reads
+
+`gcp_query_logs`/`gcp_query_metrics` are the only two tools that touch
+Cloud Logging/Cloud Monitoring, and both are **explicit opt-in, never a
+general-purpose browser**:
+
+- Both require a caller-supplied `filter_expr` — there is no
+  "list everything" default.
+- Both cap the lookback window (`Settings.max_log_query_window_hours`/
+  `max_metric_query_window_hours`) and result size
+  (`Settings.max_log_entries`/`max_time_series_points`) **regardless of
+  what the caller requests** — a caller asking for a 90-day window or
+  10,000 entries still gets the configured cap, silently clamped, not an
+  error.
+- `gcp/observability.py::query_logs` builds one complete
+  `ListLogEntriesRequest` and never mixes it with flattened kwargs (see
+  [architecture.md](architecture.md#milestone-8-three-more-client-library-shapes)).
+
+## Diagnostics guardrails
+
+The four diagnostics tools (`gcp_get_hybrid_topology`,
+`gcp_explain_network_path`, `gcp_find_network_risks`,
+`gcp_get_network_health`) are pure analysis over already-collected,
+read-only state (see
+[architecture.md#diagnostics-engine](architecture.md#diagnostics-engine)).
+None of them:
+
+- Creates, reruns, updates, or deletes a Network Management Connectivity
+  Test — `gcp_list_connectivity_tests`/`gcp_get_connectivity_test` only
+  read tests that already exist.
+- Changes a router, VPN gateway/tunnel, firewall rule/policy, or DNS
+  record.
+- Enables a disabled API or a logging/monitoring sink on the caller's
+  behalf.
+- Claims full confidence when organization/folder-level policy
+  visibility is missing — `hierarchical_firewall_parent_id` omitted means
+  `FW-002`'s hierarchical-interaction finding is emitted with
+  `confidence="indeterminate"`, never silently skipped or upgraded.
+
 ## What this server will never do
 
 - Call `insert`/`delete`/`patch`/`update`/`set_*`/`add_*`/`remove_*`/
@@ -115,3 +173,8 @@ siblings default to IAM/RBAC-only scoping.
 - Store, log, or return a service account key, access token, or refresh
   token.
 - Import or depend on `aws-cloudops-mcp` or `azure-network-mcp`.
+- Return a VPN shared secret, an Interconnect pairing key, or mirrored
+  packet content.
+- Create, rerun, update, or delete a Connectivity Test.
+- Auto-enable Cloud Logging/Monitoring, or query either without an
+  explicit, caller-supplied filter and a bounded time window.

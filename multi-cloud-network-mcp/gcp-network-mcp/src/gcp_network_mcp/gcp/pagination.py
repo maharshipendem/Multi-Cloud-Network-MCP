@@ -71,6 +71,53 @@ def paginate(
         raise translate_gcp_error(exc, resource_type=resource_type, project_id=project_id) from exc
 
 
+def paginate_with_unreachable(
+    operation_group: Any,
+    method_name: str,
+    *,
+    resource_type: str,
+    project_id: str | None = None,
+    max_items: int = DEFAULT_MAX_ITEMS,
+    items_field: str = "items",
+    unreachable_field: str = "unreachable",
+    **kwargs: Any,
+) -> tuple[list[Any], list[CollectionWarning]]:
+    """Like ``paginate()``, but for a ``List*Response`` shape that also
+    carries an ``unreachable`` field listing locations/scopes the API
+    itself could not query (Network Connectivity Center's ``HubService``
+    list calls all follow this shape; ``compute_v1``'s plain ``list()``
+    calls do not, hence a separate function rather than a parameter on
+    ``paginate()``). Every unreachable entry becomes a ``CollectionWarning``
+    -- never silently dropped."""
+    assert_read_only_operation(method_name)
+    items: list[Any] = []
+    warnings: list[CollectionWarning] = []
+    try:
+        pager = call_readonly(operation_group, method_name, **kwargs)
+        for page in pager.pages:
+            record_call()  # each page is one real GCP API request
+            for item in getattr(page, items_field):
+                items.append(item)
+                if len(items) >= max_items:
+                    return items, warnings
+            for unreachable_scope in getattr(page, unreachable_field, []):
+                warnings.append(
+                    CollectionWarning(
+                        resource_type=resource_type,
+                        code="UNREACHABLE",
+                        message=(
+                            f"Location '{unreachable_scope}' was unreachable "
+                            f"while listing {resource_type}."
+                        ),
+                        project_id=project_id,
+                        scope=unreachable_scope,
+                    )
+                )
+        return items, warnings
+    except gax.GoogleAPICallError as exc:
+        raise translate_gcp_error(exc, resource_type=resource_type, project_id=project_id) from exc
+
+
 def paginate_aggregated(
     operation_group: Any,
     method_name: str,
@@ -132,4 +179,4 @@ def paginate_aggregated(
         raise translate_gcp_error(exc, resource_type=resource_type, project_id=project_id) from exc
 
 
-__all__ = ["DEFAULT_MAX_ITEMS", "paginate", "paginate_aggregated"]
+__all__ = ["DEFAULT_MAX_ITEMS", "paginate", "paginate_aggregated", "paginate_with_unreachable"]

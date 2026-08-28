@@ -104,6 +104,47 @@ def make_aggregated_pager(
     return FakePager([FakeAggregatedPage(scoped, unreachables)])
 
 
+class FakeUnreachablePage:
+    """One page of a ``List*Response`` that also carries an ``unreachable``
+    field (Network Connectivity Center's ``HubService`` list calls)."""
+
+    def __init__(
+        self, items: list[Any], *, items_field: str = "items", unreachable: list[str] | None = None
+    ) -> None:
+        setattr(self, items_field, items)
+        self.unreachable = unreachable or []
+
+
+def make_unreachable_pager(
+    items: list[Any],
+    *,
+    items_field: str = "items",
+    unreachable: list[str] | None = None,
+    page_size: int = 100,
+) -> FakePager:
+    """Build a fake pager for a ``paginate_with_unreachable``-shaped call.
+
+    ``items_field`` must match whatever field name the real caller passes
+    to ``paginate_with_unreachable(..., items_field=...)`` -- it varies per
+    resource type (e.g. ``"vpc_flow_logs_configs"``), just like
+    ``make_aggregated_pager``'s ``items_field``.
+    """
+    chunks = [items[i : i + page_size] for i in range(0, len(items), page_size)] or [[]]
+    pages = [FakeUnreachablePage(chunk, items_field=items_field) for chunk in chunks]
+    if pages:
+        pages[-1].unreachable = unreachable or []
+    return FakePager(pages)
+
+
+class FakeLegacyPager:
+    """Mimics ``google.api_core.page_iterator.HTTPIterator``: ``.pages`` is
+    an iterable of pages, and each page is itself directly iterable (unlike
+    every gapic pager, whose pages expose items via a named field)."""
+
+    def __init__(self, pages: list[list[Any]]) -> None:
+        self.pages = pages
+
+
 @pytest.fixture
 def settings() -> Settings:
     return Settings(_env_file=None, gcp_default_project_id=PROJECT_ID)
@@ -141,7 +182,32 @@ def client_factory(settings: Settings, resource_context: ResourceContext) -> Cli
         "resource_manager_projects",
         "resource_manager_folders",
         "resource_manager_organizations",
+        "vpn_gateways",
+        "vpn_tunnels",
+        "external_vpn_gateways",
+        "interconnects",
+        "interconnect_attachments",
+        "interconnect_locations",
+        "service_attachments",
+        "packet_mirrorings",
+        "ncc_hub_service",
+        "connectivity_tests",
+        "vpc_flow_logs",
+        "org_vpc_flow_logs",
+        "logs",
+        "metrics",
     ):
         mock_client = MagicMock(name=f"mock_{method_name}")
         setattr(factory, method_name, lambda m=mock_client: m)
+    # google.cloud.dns.Client is cached per-project (see ClientFactory.dns_client's
+    # docstring), not via the shared `_clients` dict, so it needs its own mock hook.
+    mock_dns_client = MagicMock(name="mock_dns_client")
+    factory.dns_client = lambda project_id: mock_dns_client
     return factory
+
+
+@pytest.fixture
+def dns_client(client_factory: ClientFactory) -> MagicMock:
+    """The single ``MagicMock`` every ``client_factory.dns_client(...)`` call
+    returns, regardless of ``project_id`` (see the fixture above)."""
+    return client_factory.dns_client(PROJECT_ID)  # type: ignore[return-value]

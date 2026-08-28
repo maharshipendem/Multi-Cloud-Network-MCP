@@ -28,8 +28,12 @@ description: >-
   Read-only access to VPC networking resources for gcp-network-mcp:
   networks, subnetworks, routes, firewall rules/policies, instance
   connectivity metadata, addresses, load balancing resources, Cloud
-  Router/NAT, VPC peering, and Shared VPC relationships. Never grants
-  create/update/delete on any resource.
+  Router/NAT, VPC peering, Shared VPC relationships, Network Connectivity
+  Center, HA/Classic VPN, Cloud Interconnect, Private Service Connect,
+  private services access ranges, Cloud DNS, Packet Mirroring config,
+  VPC Flow Logs config, Connectivity Tests, and bounded Cloud
+  Logging/Monitoring read queries. Never grants create/update/delete on
+  any resource.
 stage: "GA"
 includedPermissions:
   # Networks, subnetworks, routes
@@ -82,3 +86,79 @@ includedPermissions:
   # Project/folder/organization discovery (gcp_list_permitted_projects)
   - resourcemanager.projects.get
   - resourcemanager.projects.list
+
+  # --- Milestone 8: advanced transit/hybrid networking & diagnostics ---
+
+  # Cloud Router BGP peer status/best-routes
+  - compute.routers.getRouterStatus
+
+  # Network Connectivity Center: hubs, spokes, groups, route tables/routes
+  - networkconnectivity.hubs.get
+  - networkconnectivity.hubs.list
+  - networkconnectivity.hubs.getStatus
+  - networkconnectivity.spokes.get
+  - networkconnectivity.spokes.list
+  - networkconnectivity.groups.get
+  - networkconnectivity.groups.list
+  - networkconnectivity.routeTables.get
+  - networkconnectivity.routeTables.list
+  - networkconnectivity.routes.get
+  - networkconnectivity.routes.list
+
+  # HA/Classic Cloud VPN gateways, tunnels, external VPN gateways
+  - compute.vpnGateways.get
+  - compute.vpnGateways.list
+  - compute.vpnGateways.getStatus
+  - compute.vpnTunnels.get
+  - compute.vpnTunnels.list
+  - compute.externalVpnGateways.get
+  - compute.externalVpnGateways.list
+
+  # Cloud Interconnect: interconnects, attachments, locations, diagnostics
+  # (never grants access to pairing keys or shared secrets -- this server's
+  # normalizers never read those fields even though `.get` would return them)
+  - compute.interconnects.get
+  - compute.interconnects.list
+  - compute.interconnects.getDiagnostics
+  - compute.interconnectAttachments.get
+  - compute.interconnectAttachments.list
+  - compute.interconnectLocations.get
+  - compute.interconnectLocations.list
+
+  # Private Service Connect: published services (producer) + consumer
+  # endpoints (derived from forwarding rules, already covered above)
+  - compute.serviceAttachments.get
+  - compute.serviceAttachments.list
+
+  # Private services access ranges (derived from Global Addresses with
+  # purpose=VPC_PEERING, already covered by compute.globalAddresses.* above)
+
+  # Cloud DNS: managed zones and record set summaries
+  - dns.managedZones.get
+  - dns.managedZones.list
+  - dns.resourceRecordSets.get
+  - dns.resourceRecordSets.list
+
+  # Packet Mirroring configuration only -- never mirrored packet content
+  - compute.packetMirrorings.get
+  - compute.packetMirrorings.list
+
+  # VPC Flow Logs configuration (Network Management API)
+  - networkmanagement.vpcFlowLogsConfigs.get
+  - networkmanagement.vpcFlowLogsConfigs.list
+  - networkmanagement.organizationVpcFlowLogsConfigs.get
+  - networkmanagement.organizationVpcFlowLogsConfigs.list
+
+  # Network Management Connectivity Tests -- reads existing tests and their
+  # last-computed result only; this server never creates/reruns a test, so
+  # no `.create`/`.rerun`/`.update`/`.delete` permission is granted.
+  - networkmanagement.connectivitytests.get
+  - networkmanagement.connectivitytests.list
+
+  # Cloud Logging / Cloud Monitoring: bounded, explicit-opt-in read queries
+  # only (gcp_query_logs/gcp_query_metrics enforce a narrow time window and
+  # result cap regardless of caller input -- see Settings.max_log_entries /
+  # max_log_query_window_hours / max_time_series_points /
+  # max_metric_query_window_hours). No write/admin permission is granted.
+  - logging.logEntries.list
+  - monitoring.timeSeries.list

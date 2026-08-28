@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gcp-network-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Production-quality, read-only Model Context Protocol (MCP) server for Google Cloud network operations."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,6 +23,11 @@ dependencies = [
     "google-auth>=2.35.0",
     "google-cloud-compute>=1.19.0",
     "google-cloud-resource-manager>=1.12.0",
+    "google-cloud-network-connectivity>=2.10.0",
+    "google-cloud-network-management>=1.20.0",
+    "google-cloud-dns>=0.35.0",
+    "google-cloud-logging>=3.10.0",
+    "google-cloud-monitoring>=2.20.0",
     "pydantic>=2.7.0",
     "pydantic-settings>=2.4.0",
 ]
@@ -76,3 +81,16 @@ warn_unused_ignores = true
 check_untyped_defs = true
 no_implicit_optional = true
 disallow_untyped_defs = true
+
+# google-cloud-dns ships no py.typed marker (unlike every other GCP client
+# library this project uses) -- it's the one hand-written, pre-gapic client
+# in this codebase's dependency set, not a gap in our own type coverage.
+[[tool.mypy.overrides]]
+module = "google.cloud.dns.*"
+ignore_missing_imports = true
+
+# google.logging.type.log_severity_pb2 (the well-known LogSeverity enum,
+# pulled in transitively by google-cloud-logging) ships no py.typed marker.
+[[tool.mypy.overrides]]
+module = "google.logging.type.*"
+ignore_missing_imports = true
