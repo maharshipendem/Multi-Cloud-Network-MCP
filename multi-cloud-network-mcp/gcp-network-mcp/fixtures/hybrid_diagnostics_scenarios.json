@@ -1,0 +1,701 @@
+{
+  "project_id": "scenario-net-project",
+  "observed_at": "2026-08-27T12:00:00+00:00",
+  "networks": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "id": null,
+      "name": "vpc-a",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174609+00:00",
+      "source_api": "NetworksClient.list",
+      "collection_completeness": "complete",
+      "mode": "custom",
+      "mtu": null,
+      "subnetwork_self_links": [],
+      "peering_names": [
+        "a-to-b"
+      ],
+      "firewall_policy_self_link": null,
+      "network_firewall_policy_enforcement_order": null,
+      "routing_mode": null,
+      "internal_ipv6_range": null
+    },
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-b",
+      "id": null,
+      "name": "vpc-b",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174658+00:00",
+      "source_api": "NetworksClient.list",
+      "collection_completeness": "complete",
+      "mode": "custom",
+      "mtu": null,
+      "subnetwork_self_links": [],
+      "peering_names": [],
+      "firewall_policy_self_link": null,
+      "network_firewall_policy_enforcement_order": null,
+      "routing_mode": null,
+      "internal_ipv6_range": null
+    }
+  ],
+  "subnetworks": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/subnetworks/subnet-a-central1",
+      "id": null,
+      "name": "subnet-a-central1",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174716+00:00",
+      "source_api": "SubnetworksClient.aggregated_list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "ip_cidr_range": "10.10.0.0/20",
+      "gateway_address": null,
+      "purpose": null,
+      "role": null,
+      "stack_type": null,
+      "ipv6_cidr_range": null,
+      "private_ip_google_access": false,
+      "private_ipv6_google_access": null,
+      "enable_flow_logs": null,
+      "state": null,
+      "secondary_ip_ranges": []
+    }
+  ],
+  "routes": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/routes/default-route",
+      "id": null,
+      "name": "default-route",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174749+00:00",
+      "source_api": "RoutesClient.list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "dest_range": "0.0.0.0/0",
+      "priority": 1000,
+      "next_hop_type": "internet_gateway",
+      "next_hop_target": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/gateways/default-internet-gateway",
+      "route_type": null,
+      "route_status": null,
+      "tags": []
+    },
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/routes/static-a",
+      "id": null,
+      "name": "static-a",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174781+00:00",
+      "source_api": "RoutesClient.list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "dest_range": "10.20.0.0/16",
+      "priority": 1000,
+      "next_hop_type": "ip_address",
+      "next_hop_target": "10.10.0.5",
+      "route_type": null,
+      "route_status": null,
+      "tags": []
+    },
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/routes/static-b",
+      "id": null,
+      "name": "static-b",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174807+00:00",
+      "source_api": "RoutesClient.list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "dest_range": "10.20.4.0/24",
+      "priority": 900,
+      "next_hop_type": "ip_address",
+      "next_hop_target": "10.10.0.6",
+      "route_type": null,
+      "route_status": null,
+      "tags": []
+    },
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/routes/mystery-route",
+      "id": null,
+      "name": "mystery-route",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174834+00:00",
+      "source_api": "RoutesClient.list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "dest_range": "192.168.100.0/24",
+      "priority": 1000,
+      "next_hop_type": "unknown",
+      "next_hop_target": null,
+      "route_type": null,
+      "route_status": null,
+      "tags": []
+    }
+  ],
+  "peerings": [
+    {
+      "name": "a-to-b",
+      "owning_network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "network": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-b",
+      "state": "ACTIVE",
+      "state_details": null,
+      "exchange_subnet_routes": false,
+      "export_custom_routes": false,
+      "import_custom_routes": false,
+      "auto_create_routes": null,
+      "stack_type": null
+    }
+  ],
+  "firewall_rules": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/firewalls/allow-ssh-internal",
+      "id": null,
+      "name": "allow-ssh-internal",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.174898+00:00",
+      "source_api": "FirewallsClient.list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "direction": "INGRESS",
+      "priority": 1000,
+      "disabled": false,
+      "action": "ALLOW",
+      "allowed": [
+        {
+          "ip_protocol": "tcp",
+          "ports": [
+            "22"
+          ]
+        }
+      ],
+      "denied": [],
+      "source_ranges": [
+        "10.0.0.0/8"
+      ],
+      "destination_ranges": [],
+      "source_tags": [],
+      "target_tags": [],
+      "source_service_accounts": [],
+      "target_service_accounts": [],
+      "is_implied": false
+    },
+    {
+      "self_link": null,
+      "id": "implied-allow-egress-vpc-a",
+      "name": "implied-allow-egress",
+      "project_id": "",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "",
+      "source_api": "implied",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "direction": "EGRESS",
+      "priority": 65535,
+      "disabled": false,
+      "action": "ALLOW",
+      "allowed": [
+        {
+          "ip_protocol": "all",
+          "ports": []
+        }
+      ],
+      "denied": [],
+      "source_ranges": [],
+      "destination_ranges": [
+        "0.0.0.0/0"
+      ],
+      "source_tags": [],
+      "target_tags": [],
+      "source_service_accounts": [],
+      "target_service_accounts": [],
+      "is_implied": true
+    },
+    {
+      "self_link": null,
+      "id": "implied-deny-ingress-vpc-a",
+      "name": "implied-deny-ingress",
+      "project_id": "",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "",
+      "source_api": "implied",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "direction": "INGRESS",
+      "priority": 65535,
+      "disabled": false,
+      "action": "DENY",
+      "allowed": [],
+      "denied": [
+        {
+          "ip_protocol": "all",
+          "ports": []
+        }
+      ],
+      "source_ranges": [
+        "0.0.0.0/0"
+      ],
+      "destination_ranges": [],
+      "source_tags": [],
+      "target_tags": [],
+      "source_service_accounts": [],
+      "target_service_accounts": [],
+      "is_implied": true
+    }
+  ],
+  "network_firewall_policies": [],
+  "hierarchical_firewall_policies": [],
+  "forwarding_rules": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/forwardingRules/public-lb",
+      "id": null,
+      "name": "public-lb",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175439+00:00",
+      "source_api": "ForwardingRulesClient.aggregated_list",
+      "collection_completeness": "complete",
+      "ip_address": "203.0.113.50",
+      "ip_protocol": "TCP",
+      "port_range": "443-443",
+      "ports": [],
+      "load_balancing_scheme": "EXTERNAL",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "subnetwork_self_link": null,
+      "target": null,
+      "backend_service": null,
+      "psc_connection_status": null
+    }
+  ],
+  "routers": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/routers/router-a",
+      "id": null,
+      "name": "router-a",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175001+00:00",
+      "source_api": "RoutersClient.aggregated_list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "bgp_asn": null,
+      "nats": [
+        {
+          "name": "nat-a",
+          "nat_ip_allocate_option": "MANUAL_ONLY",
+          "source_subnetwork_ip_ranges_to_nat": null,
+          "nat_ips": [],
+          "min_ports_per_vm": 32,
+          "max_ports_per_vm": null,
+          "enable_endpoint_independent_mapping": false
+        }
+      ],
+      "bgp_peers": [
+        {
+          "name": "peer-onprem",
+          "interface_name": "if-0",
+          "peer_asn": 65001,
+          "peer_ip_address": "169.254.1.2",
+          "ip_address": null,
+          "enable": null,
+          "advertise_mode": null,
+          "advertised_route_priority": null,
+          "management_type": null,
+          "router_appliance_instance": null
+        }
+      ]
+    }
+  ],
+  "router_statuses": [
+    {
+      "router_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/routers/router-a",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "bgp_peer_status": [
+        {
+          "name": "peer-onprem",
+          "ip_address": "169.254.1.1",
+          "peer_ip_address": "169.254.1.2",
+          "state": "Established",
+          "status": "UP",
+          "status_reason": null,
+          "uptime": null,
+          "num_learned_routes": 12,
+          "linked_vpn_tunnel": null
+        },
+        {
+          "name": "peer-secondary",
+          "ip_address": "169.254.2.1",
+          "peer_ip_address": "169.254.2.2",
+          "state": "Established",
+          "status": "UP",
+          "status_reason": null,
+          "uptime": null,
+          "num_learned_routes": 0,
+          "linked_vpn_tunnel": null
+        }
+      ],
+      "best_routes": [],
+      "best_routes_for_router": [],
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "source_api": "RoutersClient.get_router_status"
+    }
+  ],
+  "ncc_hubs": [
+    {
+      "name": "projects/scenario-net-project/locations/global/hubs/hub-1",
+      "unique_id": null,
+      "project_id": "scenario-net-project",
+      "description": null,
+      "state": "ACTIVE",
+      "policy_mode": "PRESET",
+      "preset_topology": "MESH",
+      "export_psc": false,
+      "route_table_names": [],
+      "spoke_count": 2,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175084+00:00",
+      "source_api": "HubServiceClient.list_hubs"
+    }
+  ],
+  "ncc_spokes": [
+    {
+      "name": "projects/scenario-net-project/locations/us-central1/spokes/spoke-a",
+      "unique_id": null,
+      "project_id": "scenario-net-project",
+      "region": null,
+      "hub": "projects/scenario-net-project/locations/global/hubs/hub-1",
+      "group": null,
+      "description": null,
+      "state": "ACTIVE",
+      "spoke_type": "VPC_NETWORK",
+      "linked_resource_uris": [
+        "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a"
+      ],
+      "reasons": [],
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175129+00:00",
+      "source_api": "HubServiceClient.list_spokes"
+    },
+    {
+      "name": "projects/scenario-net-project/locations/us-central1/spokes/spoke-b",
+      "unique_id": null,
+      "project_id": "scenario-net-project",
+      "region": null,
+      "hub": "projects/scenario-net-project/locations/global/hubs/hub-1",
+      "group": null,
+      "description": null,
+      "state": "INACTIVE",
+      "spoke_type": "VPC_NETWORK",
+      "linked_resource_uris": [
+        "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-b"
+      ],
+      "reasons": [
+        {
+          "code": "PENDING_REVIEW",
+          "message": "Awaiting hub administrator review."
+        }
+      ],
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175172+00:00",
+      "source_api": "HubServiceClient.list_spokes"
+    }
+  ],
+  "ncc_route_tables": [],
+  "ncc_routes": [],
+  "vpn_gateways": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnGateways/ha-vpn-1",
+      "id": null,
+      "name": "ha-vpn-1",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175222+00:00",
+      "source_api": "VpnGatewaysClient.aggregated_list",
+      "collection_completeness": "complete",
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/networks/vpc-a",
+      "stack_type": null,
+      "gateway_ip_version": null,
+      "interfaces": [
+        {
+          "id": 0,
+          "ip_address": "203.0.113.10",
+          "interconnect_attachment": null
+        },
+        {
+          "id": 1,
+          "ip_address": "203.0.113.11",
+          "interconnect_attachment": null
+        }
+      ]
+    }
+  ],
+  "vpn_gateway_statuses": [
+    {
+      "vpn_gateway_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnGateways/ha-vpn-1",
+      "connections": [
+        {
+          "peer_external_gateway": null,
+          "peer_gcp_gateway": null,
+          "ha_requirement_state": "CONNECTION_REDUNDANCY_NOT_MET",
+          "ha_unsatisfied_reason": "Only one of two tunnels is established.",
+          "tunnels": [
+            {
+              "tunnel_url": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnTunnels/tunnel-1",
+              "local_gateway_interface": 0,
+              "peer_gateway_interface": 0
+            }
+          ]
+        }
+      ],
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "source_api": "VpnGatewaysClient.get_status"
+    }
+  ],
+  "vpn_tunnels": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnTunnels/tunnel-1",
+      "id": null,
+      "name": "tunnel-1",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175262+00:00",
+      "source_api": "VpnTunnelsClient.aggregated_list",
+      "collection_completeness": "complete",
+      "redacted": true,
+      "vpn_gateway_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnGateways/ha-vpn-1",
+      "vpn_gateway_interface": 0,
+      "peer_ip": "198.51.100.10",
+      "peer_gcp_gateway": null,
+      "peer_external_gateway": null,
+      "peer_external_gateway_interface": null,
+      "router_self_link": null,
+      "ike_version": null,
+      "status": "ESTABLISHED",
+      "detailed_status": null,
+      "local_traffic_selector": [],
+      "remote_traffic_selector": []
+    },
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnTunnels/tunnel-2",
+      "id": null,
+      "name": "tunnel-2",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175292+00:00",
+      "source_api": "VpnTunnelsClient.aggregated_list",
+      "collection_completeness": "complete",
+      "redacted": true,
+      "vpn_gateway_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/vpnGateways/ha-vpn-1",
+      "vpn_gateway_interface": 0,
+      "peer_ip": "198.51.100.11",
+      "peer_gcp_gateway": null,
+      "peer_external_gateway": null,
+      "peer_external_gateway_interface": null,
+      "router_self_link": null,
+      "ike_version": null,
+      "status": "FAILED",
+      "detailed_status": null,
+      "local_traffic_selector": [],
+      "remote_traffic_selector": []
+    }
+  ],
+  "interconnects": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/interconnects/ic-primary",
+      "id": null,
+      "name": "ic-primary",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175330+00:00",
+      "source_api": "InterconnectsClient.list",
+      "collection_completeness": "complete",
+      "interconnect_type": "DEDICATED",
+      "link_type": null,
+      "location": null,
+      "customer_name": null,
+      "admin_enabled": true,
+      "operational_status": "OS_ACTIVE",
+      "state": null,
+      "provisioned_link_count": null,
+      "requested_link_count": null,
+      "google_ip_address": null,
+      "peer_ip_address": null,
+      "circuit_infos": [],
+      "interconnect_attachment_self_links": []
+    },
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/interconnects/ic-secondary",
+      "id": null,
+      "name": "ic-secondary",
+      "project_id": "scenario-net-project",
+      "region": null,
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175359+00:00",
+      "source_api": "InterconnectsClient.list",
+      "collection_completeness": "complete",
+      "interconnect_type": "DEDICATED",
+      "link_type": null,
+      "location": null,
+      "customer_name": null,
+      "admin_enabled": true,
+      "operational_status": "OS_UNPROVISIONED",
+      "state": null,
+      "provisioned_link_count": null,
+      "requested_link_count": null,
+      "google_ip_address": null,
+      "peer_ip_address": null,
+      "circuit_infos": [],
+      "interconnect_attachment_self_links": []
+    }
+  ],
+  "interconnect_attachments": [
+    {
+      "self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/interconnectAttachments/attach-primary",
+      "id": null,
+      "name": "attach-primary",
+      "project_id": "scenario-net-project",
+      "region": "us-central1",
+      "zone": null,
+      "labels": {},
+      "observed_at": "2026-08-28T14:57:35.175402+00:00",
+      "source_api": "InterconnectAttachmentsClient.aggregated_list",
+      "collection_completeness": "complete",
+      "redacted": true,
+      "interconnect_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/interconnects/ic-primary",
+      "router_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/regions/us-central1/routers/router-a",
+      "attachment_type": "DEDICATED",
+      "edge_availability_domain": null,
+      "bandwidth": null,
+      "vlan_tag8021q": null,
+      "mtu": null,
+      "state": "ACTIVE",
+      "operational_status": null,
+      "cloud_router_ip_address": null,
+      "customer_router_ip_address": null,
+      "partner_asn": null,
+      "partner_metadata": null,
+      "encryption": null,
+      "stack_type": null
+    }
+  ],
+  "interconnect_diagnostics": [
+    {
+      "interconnect_self_link": "https://www.googleapis.com/compute/v1/projects/scenario-net-project/global/interconnects/ic-secondary",
+      "mac_address": "00:1a:2b:3c:4d:5e",
+      "bundle_operational_status": "DOWN",
+      "bundle_aggregation_type": null,
+      "links": [
+        {
+          "circuit_id": "circuit-1",
+          "operational_status": "DOWN",
+          "google_demarc": null,
+          "receiving_optical_power_dbm": null,
+          "transmitting_optical_power_dbm": null
+        }
+      ],
+      "observed_at": "2026-08-27T12:00:00+00:00",
+      "source_api": "InterconnectsClient.get_diagnostics"
+    }
+  ],
+  "shared_vpc_host_status": {
+    "project_id": "scenario-net-project",
+    "xpn_project_status": "HOST"
+  },
+  "dns_zones": [
+    {
+      "name": "prod-zone",
+      "project_id": "scenario-net-project",
+      "dns_name": "prod.example.internal.",
+      "description": "Internal split-horizon zone",
+      "zone_id": "1122334455",
+      "name_servers": [
+        "ns-cloud-a1.googledomains.com.",
+        "ns-cloud-a2.googledomains.com."
+      ],
+      "name_server_set": null,
+      "observed_at": "2026-08-28T14:57:35.175446+00:00",
+      "source_api": "google.cloud.dns.Client.list_zones"
+    },
+    {
+      "name": "orphaned-zone",
+      "project_id": "scenario-net-project",
+      "dns_name": "orphaned.example.internal.",
+      "description": null,
+      "zone_id": "9988776655",
+      "name_servers": [],
+      "name_server_set": null,
+      "observed_at": "2026-08-28T14:57:35.175450+00:00",
+      "source_api": "google.cloud.dns.Client.list_zones"
+    }
+  ],
+  "warnings": [
+    {
+      "resource_type": "service_attachment",
+      "code": "COLLECTION_FAILED",
+      "message": "Could not collect service_attachment: 403 Compute Engine API has not been used in project 'scenario-net-project' before or it is disabled.",
+      "project_id": "scenario-net-project",
+      "scope": null
+    },
+    {
+      "resource_type": "interconnect_attachment",
+      "code": "PERMISSION_DENIED",
+      "message": "The caller does not have permission to list interconnectAttachments in region us-east1 (partial IAM grant -- only us-central1 was authorized).",
+      "project_id": "scenario-net-project",
+      "scope": "regions/us-east1"
+    },
+    {
+      "resource_type": "time_series",
+      "code": "RESOURCE_EXHAUSTED",
+      "message": "Cloud Monitoring API request was throttled (quota exceeded); metric data for this window may be incomplete.",
+      "project_id": "scenario-net-project",
+      "scope": null
+    },
+    {
+      "resource_type": "log_entry",
+      "code": "STALE_DATA",
+      "message": "Cloud Logging returned entries with a maximum timestamp more than 15 minutes older than the query time -- log ingestion may be delayed.",
+      "project_id": "scenario-net-project",
+      "scope": null
+    }
+  ]
+}

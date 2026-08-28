@@ -13,6 +13,7 @@ class AddressSummary(GcpResource):
 
     address: str
     address_type: str | None = None
+    prefix_length: int | None = None
     status: str | None = None
     purpose: str | None = None
     network_self_link: str | None = None

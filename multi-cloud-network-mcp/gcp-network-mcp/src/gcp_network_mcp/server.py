@@ -16,17 +16,29 @@ from gcp_network_mcp.gcp.client_factory import ClientFactory
 from gcp_network_mcp.logging.setup import configure_logging, get_logger
 from gcp_network_mcp.tools import (
     addresses,
+    bgp,
+    connectivity_center,
+    connectivity_tests,
+    diagnostics,
+    dns,
     firewall,
+    flow_logs,
     identity,
     instances,
+    interconnect,
     load_balancing,
     nat,
     networking,
+    observability,
+    packet_mirroring,
     peering,
+    private_service_access,
+    private_service_connect,
     projects,
     routes,
     shared_vpc,
     topology,
+    vpn,
 )
 
 _logger = get_logger(__name__)
@@ -54,6 +66,20 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     peering.register(mcp, client_factory, resource_context)
     shared_vpc.register(mcp, client_factory, resource_context)
     topology.register(mcp, client_factory, resource_context)
+
+    # Milestone 8: advanced transit/hybrid networking, DNS, observability, diagnostics.
+    bgp.register(mcp, client_factory, resource_context)
+    connectivity_center.register(mcp, client_factory, resource_context)
+    vpn.register(mcp, client_factory, resource_context)
+    interconnect.register(mcp, client_factory, resource_context)
+    private_service_connect.register(mcp, client_factory, resource_context)
+    private_service_access.register(mcp, client_factory, resource_context)
+    dns.register(mcp, client_factory, resource_context)
+    packet_mirroring.register(mcp, client_factory, resource_context)
+    flow_logs.register(mcp, client_factory, resource_context)
+    connectivity_tests.register(mcp, client_factory, resource_context)
+    observability.register(mcp, client_factory, resource_context, settings)
+    diagnostics.register(mcp, client_factory, resource_context, settings)
 
     _logger.info(
         "server initialized",

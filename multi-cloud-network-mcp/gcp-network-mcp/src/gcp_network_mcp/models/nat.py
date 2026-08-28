@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from gcp_network_mcp.models.bgp import RouterBgpPeerConfig
 from gcp_network_mcp.models.common import GcpResource
 
 
@@ -27,6 +28,7 @@ class RouterSummary(GcpResource):
     network_self_link: str
     bgp_asn: int | None = None
     nats: list[RouterNatSummary] = Field(default_factory=list)
+    bgp_peers: list[RouterBgpPeerConfig] = Field(default_factory=list)
 
 
 __all__ = ["RouterNatSummary", "RouterSummary"]

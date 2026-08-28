@@ -46,6 +46,7 @@ def normalize_forwarding_rule(
         subnetwork_self_link=rule.subnetwork or None,
         target=rule.target or None,
         backend_service=rule.backend_service or None,
+        psc_connection_status=rule.psc_connection_status or None,
         observed_at=now_iso(),
         source_api="ForwardingRulesClient.aggregated_list",
     )

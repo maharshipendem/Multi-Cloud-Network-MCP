@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from google.cloud import compute_v1
 
+from gcp_network_mcp.gcp.bgp import normalize_bgp_peer_config
 from gcp_network_mcp.gcp.client_factory import ClientFactory
 from gcp_network_mcp.gcp.collection import CollectionResult, now_iso
 from gcp_network_mcp.gcp.pagination import paginate_aggregated
@@ -35,6 +36,7 @@ def normalize_router(router: compute_v1.Router, *, project_id: str) -> RouterSum
         network_self_link=router.network,
         bgp_asn=router.bgp.asn if "bgp" in router else None,
         nats=[_normalize_nat(n) for n in router.nats],
+        bgp_peers=[normalize_bgp_peer_config(p) for p in router.bgp_peers],
         observed_at=now_iso(),
         source_api="RoutersClient.aggregated_list",
     )

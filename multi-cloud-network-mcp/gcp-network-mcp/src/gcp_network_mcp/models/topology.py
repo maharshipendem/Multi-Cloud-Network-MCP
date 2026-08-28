@@ -55,4 +55,20 @@ class VpcTopology(BaseModel):
     api_call_count: int = 0
 
 
-__all__ = ["TopologyEdge", "TopologyNode", "VpcTopology"]
+class HybridTopology(BaseModel):
+    """Typed node/edge graph for ``gcp_get_hybrid_topology`` -- one
+    project's VPC networking joined with NCC hubs/spokes, VPN gateways/
+    tunnels, and Interconnect attachments, produced by
+    ``diagnostics.hybrid_topology``. Broader in scope than ``VpcTopology``
+    (hybrid connectivity included) but the same node/edge/evidence
+    contract."""
+
+    project_id: str
+    observed_at: str
+    completeness: str = "complete"
+    nodes: list[TopologyNode] = Field(default_factory=list)
+    edges: list[TopologyEdge] = Field(default_factory=list)
+    warnings: list[CollectionWarning] = Field(default_factory=list)
+
+
+__all__ = ["HybridTopology", "TopologyEdge", "TopologyNode", "VpcTopology"]

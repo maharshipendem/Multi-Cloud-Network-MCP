@@ -1,9 +1,11 @@
 """Read-only security guardrails.
 
 This module is the single choke point through which every GCP client
-library call must pass. Its job is to make it structurally hard for a
-future tool to "accidentally" call a mutating GCP operation -- not to be
-the sole line of defense.
+library call must pass -- not just ``compute_v1``, but every provider
+library this server uses (``networkconnectivity_v1``, ``network_management_v1``,
+``google.cloud.dns``, ``logging_v2``, ``monitoring_v3``). Its job is to
+make it structurally hard for a future tool to "accidentally" call a
+mutating GCP operation -- not to be the sole line of defense.
 
 IMPORTANT: this is a defense-in-depth control, not the authoritative
 security boundary. The authoritative boundary is IAM: the identity this
@@ -13,35 +15,46 @@ to exactly the `*.get`/`*.list` permissions this milestone's tools need
 were bypassed or had a bug, a correctly scoped IAM role still prevents
 any mutation at the GCP API layer itself.
 
-Unlike Azure's SDK (where a long-running mutation and a long-running
-*read* computation can share the same ``begin_`` prefix, requiring
-explicit per-method exceptions), the Google Cloud client libraries
-generated from Google's API definitions follow a clean, consistent
-convention: every read operation is named ``get``, ``list``, or
-``aggregated_list``; every mutating operation is named ``insert``,
-``delete``, ``patch``, ``update``, or a verb-prefixed action
-(``set_*``, ``add_*``, ``remove_*``, ``enable_*``, ``disable_*``,
-``request_*``, ``cancel_*``, ``resize_*``, ``start_*``, ``stop_*``,
-``reset_*``, ``attach_*``, ``detach_*``, ``move_*``, ``expand_*``,
-``suspend_*``, ``resume_*``, ``simulate_*``, ``switch_*``,
-``bulk_insert``). No method in the resource types this milestone's tools
-call needs an exception to that rule -- every genuinely read-only
-computed view this server uses (``get_health``, ``get_effective_firewalls``,
-``list_peering_routes``, ``list_usable``, ``get_xpn_host``,
-``get_xpn_resources``, ``list_xpn_hosts``, ``list_associations``,
-``get_nat_ip_info``, ``get_nat_mapping_info``, ``get_router_status``,
-``list_bgp_routes``) already starts with ``get_``/``list_`` and needs no
-special-casing.
+Every Google Cloud client library generated from Google's API definitions
+follows the same clean, consistent read-operation convention: a read is
+always named ``get``, ``list``, ``aggregated_list``, or ``search``; a
+handful of genuinely read-only *computed views* additionally use
+``query_*`` (e.g. ``query_hub_status``) or ``show_*`` (e.g.
+``show_effective_flow_logs_configs``) -- verified by enumerating every
+method on every client class across ``compute_v1``,
+``networkconnectivity_v1``, ``network_management_v1``, ``monitoring_v3``,
+and ``logging_v2``'s ``LoggingServiceV2Client``: every method matching
+this prefix set is a real, non-mutating read, and no mutating method
+anywhere in that surface happens to start with one of these prefixes.
+Mutating operations use ``insert``, ``delete``, ``patch``, ``update``, or
+a verb-prefixed action (``set_*``, ``add_*``, ``remove_*``, ``enable_*``,
+``disable_*``, ``request_*``, ``cancel_*``, ``resize_*``, ``start_*``,
+``stop_*``, ``reset_*``, ``attach_*``, ``detach_*``, ``move_*``,
+``expand_*``, ``suspend_*``, ``resume_*``, ``simulate_*``, ``switch_*``,
+``bulk_insert``, ``accept_*``, ``reject_*``, ``rerun_*``, ``write_*``,
+and more -- see ``BLOCKED_KEYWORDS``).
 """
 
 from __future__ import annotations
 
 from gcp_network_mcp.exceptions import GuardrailViolationError
 
-# The only prefixes a tool is allowed to invoke through the GCP service
-# layer. "aggregated_list" is its own entry because it doesn't literally
-# start with "list" (it starts with "aggregated").
-READ_ONLY_PREFIXES: tuple[str, ...] = ("get", "list", "aggregated_list", "search")
+# The only prefixes a tool is allowed to invoke through any GCP client
+# library used in this codebase. "aggregated_list" is its own entry
+# because it doesn't literally start with "list" (it starts with
+# "aggregated"). "query"/"show" cover exactly three genuinely read-only
+# computed-view methods this server calls (query_hub_status,
+# query_org_vpc_flow_logs_configs, show_effective_flow_logs_configs) --
+# verified by enumerating every "query_*"/"show_*" method across every
+# client class this server touches; none of them mutate anything.
+READ_ONLY_PREFIXES: tuple[str, ...] = (
+    "get",
+    "list",
+    "aggregated_list",
+    "search",
+    "query",
+    "show",
+)
 
 # Keywords that indicate a mutating or state-changing GCP operation.
 # Matched as a whole "word" segment of the snake_case method name so that
@@ -73,6 +86,26 @@ BLOCKED_KEYWORDS: frozenset[str] = frozenset(
         "simulate",
         "switch",
         "bulk",
+        # Added for Milestone 8's new provider libraries (Network
+        # Connectivity Center, Network Management, Cloud Logging):
+        "accept",
+        "reject",
+        "rerun",
+        "write",
+        "abandon",
+        "announce",
+        "apply",
+        "clone",
+        "copy",
+        "deprecate",
+        "invalidate",
+        "pause",
+        "perform",
+        "preview",
+        "recreate",
+        "send",
+        "validate",
+        "withdraw",
     }
 )
 
@@ -96,6 +129,30 @@ BLOCKED_ACTIONS: frozenset[str] = frozenset(
         "set_labels",
         "set_tags",
         "set_metadata",
+        # Network Connectivity Center
+        "create_hub",
+        "create_spoke",
+        "delete_hub",
+        "delete_spoke",
+        "update_hub",
+        "update_spoke",
+        "update_group",
+        "accept_hub_spoke",
+        "accept_spoke_update",
+        "reject_hub_spoke",
+        "reject_spoke_update",
+        # Network Management
+        "create_connectivity_test",
+        "update_connectivity_test",
+        "delete_connectivity_test",
+        "rerun_connectivity_test",
+        "create_vpc_flow_logs_config",
+        "update_vpc_flow_logs_config",
+        "delete_vpc_flow_logs_config",
+        # Cloud Logging
+        "write_log_entries",
+        "delete_log",
+        "tail_log_entries",
     }
 )
 

@@ -21,6 +21,10 @@ class ForwardingRuleSummary(GcpResource):
     subnetwork_self_link: str | None = None
     target: str | None = None
     backend_service: str | None = None
+    # Set only when `target` is a Private Service Connect service
+    # attachment -- see gcp.private_service_connect.list_psc_endpoints,
+    # which filters on this shape rather than duplicating collection.
+    psc_connection_status: str | None = None
 
 
 class TargetProxySummary(GcpResource):

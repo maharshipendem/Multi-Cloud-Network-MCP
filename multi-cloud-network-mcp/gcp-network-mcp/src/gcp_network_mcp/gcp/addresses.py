@@ -26,6 +26,7 @@ def normalize_address(
         region=parsed.region if parsed else None,
         address=address.address,
         address_type=address.address_type or None,
+        prefix_length=address.prefix_length or None,
         status=address.status or None,
         purpose=address.purpose or None,
         network_self_link=address.network or None,

@@ -19,14 +19,27 @@ synchronously when called. Resolving it eagerly in ``__init__`` would
 mean ``build_server()`` itself fails outside an ADC-configured
 environment -- including the offline MCP smoke tests, which build a real
 server and only mock the GCP client classes, not credential resolution.
+
+Milestone 8 adds five more provider libraries
+(``networkconnectivity_v1``, ``network_management_v1``,
+``google.cloud.dns``, ``logging_v2``, ``monitoring_v3``), all constructed
+through this same choke point. ``google.cloud.dns.Client`` is the one
+exception to the "one instance per class for the whole process" rule:
+unlike every gapic client this server uses, it is constructed *scoped to
+one project* (``dns.Client(project=..., credentials=...)``), closer to
+Azure's per-subscription client pattern -- so it is cached per project
+ID instead, via ``dns_client()``.
 """
 
 from __future__ import annotations
 
 from typing import Any, Protocol, TypeVar
 
+import google.cloud.dns as dns
 from google.auth.credentials import Credentials
-from google.cloud import compute_v1, resourcemanager_v3
+from google.cloud import compute_v1, monitoring_v3, network_management_v1, resourcemanager_v3
+from google.cloud import networkconnectivity_v1 as ncc
+from google.cloud.logging_v2.services.logging_service_v2 import LoggingServiceV2Client
 
 from gcp_network_mcp.auth.credentials import get_shared_credentials
 from gcp_network_mcp.auth.session import ResourceContext
@@ -47,6 +60,7 @@ class ClientFactory:
         self._credentials: Credentials | None = None
         self._adc_project_id: str | None = None
         self._clients: dict[type, Any] = {}
+        self._dns_clients: dict[str, dns.Client] = {}
 
     def _resolved_credentials(self) -> Credentials:
         if self._credentials is None:
@@ -58,6 +72,13 @@ class ClientFactory:
         if client is None:
             client = client_cls(credentials=self._resolved_credentials())
             self._clients[client_cls] = client
+        return client
+
+    def dns_client(self, project_id: str) -> dns.Client:
+        client = self._dns_clients.get(project_id)
+        if client is None:
+            client = dns.Client(project=project_id, credentials=self._resolved_credentials())
+            self._dns_clients[project_id] = client
         return client
 
     # --- Compute Engine (networking) -----------------------------------------
@@ -110,6 +131,31 @@ class ClientFactory:
     def routers(self) -> compute_v1.RoutersClient:
         return self._client(compute_v1.RoutersClient)
 
+    def vpn_gateways(self) -> compute_v1.VpnGatewaysClient:
+        return self._client(compute_v1.VpnGatewaysClient)
+
+    def vpn_tunnels(self) -> compute_v1.VpnTunnelsClient:
+        return self._client(compute_v1.VpnTunnelsClient)
+
+    def external_vpn_gateways(self) -> compute_v1.ExternalVpnGatewaysClient:
+        return self._client(compute_v1.ExternalVpnGatewaysClient)
+
+    def interconnects(self) -> compute_v1.InterconnectsClient:
+        return self._client(compute_v1.InterconnectsClient)
+
+    def interconnect_attachments(self) -> compute_v1.InterconnectAttachmentsClient:
+        return self._client(compute_v1.InterconnectAttachmentsClient)
+
+    def interconnect_locations(self) -> compute_v1.InterconnectLocationsClient:
+        return self._client(compute_v1.InterconnectLocationsClient)
+
+    def service_attachments(self) -> compute_v1.ServiceAttachmentsClient:
+        """Private Service Connect: published services (producer side)."""
+        return self._client(compute_v1.ServiceAttachmentsClient)
+
+    def packet_mirrorings(self) -> compute_v1.PacketMirroringsClient:
+        return self._client(compute_v1.PacketMirroringsClient)
+
     def compute_projects(self) -> compute_v1.ProjectsClient:
         """The Compute Engine Projects client -- used only for Shared VPC
         host/service-project discovery (``get_xpn_host``/
@@ -127,6 +173,30 @@ class ClientFactory:
 
     def resource_manager_organizations(self) -> resourcemanager_v3.OrganizationsClient:
         return self._client(resourcemanager_v3.OrganizationsClient)
+
+    # --- Network Connectivity Center ------------------------------------------
+
+    def ncc_hub_service(self) -> ncc.HubServiceClient:
+        return self._client(ncc.HubServiceClient)
+
+    # --- Network Management (Connectivity Tests, VPC Flow Logs config) --------
+
+    def connectivity_tests(self) -> network_management_v1.ReachabilityServiceClient:
+        return self._client(network_management_v1.ReachabilityServiceClient)
+
+    def vpc_flow_logs(self) -> network_management_v1.VpcFlowLogsServiceClient:
+        return self._client(network_management_v1.VpcFlowLogsServiceClient)
+
+    def org_vpc_flow_logs(self) -> network_management_v1.OrganizationVpcFlowLogsServiceClient:
+        return self._client(network_management_v1.OrganizationVpcFlowLogsServiceClient)
+
+    # --- Observability (explicit-opt-in, narrowly bounded tools only) ---------
+
+    def logs(self) -> LoggingServiceV2Client:
+        return self._client(LoggingServiceV2Client)
+
+    def metrics(self) -> monitoring_v3.MetricServiceClient:
+        return self._client(monitoring_v3.MetricServiceClient)
 
 
 __all__ = ["ClientFactory"]
