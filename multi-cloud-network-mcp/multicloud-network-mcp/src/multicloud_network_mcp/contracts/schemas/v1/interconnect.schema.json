@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/interconnect.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.Interconnect (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "CloudScope": {
+      "description": "Where a fact was observed: which provider, which tenancy\nboundary, which geography, and when. Every field beyond ``provider``\nand ``collected_at`` is optional because no single provider\npopulates all of them -- see the field-by-field mapping below and\n``docs/normalization.md``.\n\n- ``tenant_id``: Azure AD tenant. Rarely meaningful for AWS/GCP.\n- ``account_id``: AWS account ID (12 digits).\n- ``subscription_id``: Azure subscription GUID.\n- ``project_id``: GCP project ID.\n- ``resource_group``: Azure resource group -- kept as its own field\n  (not folded into ``extensions``) because Azure resource identity is\n  genuinely incomplete without it, unlike a merely-supplementary fact.\n- ``region``: AWS/GCP-style region (``us-east-1``/``us-central1``).\n- ``location``: Azure's own term for the same granularity (ARM\n  responses literally use the JSON field name ``location``, not\n  ``region``) -- kept as a separate field rather than aliased onto\n  ``region``, since forcing Azure's ``location`` string into a field\n  named ``region`` would misrepresent which provider vocabulary it\n  came from.\n- ``zone``: availability-zone-level granularity, when the provider\n  exposes it (AWS AZ, Azure zone number, GCP zone).\n- ``collected_at``: ISO 8601 UTC timestamp this scope's data was\n  observed at -- never a live/real-time value.",
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/Provider"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        },
+        "account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Account Id"
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subscription Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "resource_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Group"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zone"
+        },
+        "collected_at": {
+          "title": "Collected At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "collected_at"
+      ],
+      "title": "CloudScope",
+      "type": "object"
+    },
+    "Provider": {
+      "enum": [
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": "Provider",
+      "type": "string"
+    }
+  },
+  "description": "Unifies an AWS Direct Connect ``Connection``, an Azure\n``ExpressRouteCircuit``, and a GCP ``Interconnect``.\n\n``redacted: bool = True`` is a permanent guarantee: no\nauthorization-key/pairing-key field exists on this model.\n\nSemantic gap: ``bandwidth`` is deliberately a free-text ``str``\n(e.g. ``\"10Gbps\"``, ``\"1Gbps\"``) rather than a normalized integer,\nbecause the three providers report it in genuinely different units\nand increments (AWS's fixed port-speed tiers, Azure's circuit\nbandwidth-in-Mbps SKU field, GCP's ``link_type``-derived capacity) and\ncoercing them onto one numeric scale here would imply a precision\nand comparability across providers that the raw values don't\nactually support.",
+  "properties": {
+    "extensions": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "urn": {
+      "title": "Urn",
+      "type": "string"
+    },
+    "native_id": {
+      "title": "Native Id",
+      "type": "string"
+    },
+    "resource_type": {
+      "title": "Resource Type",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/Provider"
+    },
+    "scope": {
+      "$ref": "#/$defs/CloudScope"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "tags": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "object"
+    },
+    "observed_at": {
+      "title": "Observed At",
+      "type": "string"
+    },
+    "source_api": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Api"
+    },
+    "collection_completeness": {
+      "default": "complete",
+      "title": "Collection Completeness",
+      "type": "string"
+    },
+    "interconnect_type": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Interconnect Type"
+    },
+    "bandwidth": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Bandwidth"
+    },
+    "location": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Location"
+    },
+    "state": {
+      "title": "State",
+      "type": "string"
+    },
+    "redacted": {
+      "default": true,
+      "title": "Redacted",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "urn",
+    "native_id",
+    "resource_type",
+    "provider",
+    "scope",
+    "observed_at",
+    "state"
+  ],
+  "title": "Interconnect",
+  "type": "object"
+}

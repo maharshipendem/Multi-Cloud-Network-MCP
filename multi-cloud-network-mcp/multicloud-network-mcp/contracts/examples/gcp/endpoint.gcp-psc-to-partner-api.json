@@ -1,0 +1,31 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:endpoint:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/psc-to-partner-api",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/psc-to-partner-api",
+  "resource_type": "endpoint",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "region": "us-central1",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "psc-to-partner-api",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "ForwardingRulesClient.list (filtered to PSC targets)",
+  "collection_completeness": "complete",
+  "endpoint_type": "consumer",
+  "service_name": "projects/acme-partner-services-654321/regions/us-central1/serviceAttachments/partner-api-service",
+  "network_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "subnet_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:subnet:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+  "private_ip_addresses": ["10.10.0.50"],
+  "state": "accepted",
+  "extensions": {
+    "gcp": {
+      "forwarding_rule_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/psc-to-partner-api",
+      "service_attachment_target": "projects/acme-partner-services-654321/regions/us-central1/serviceAttachments/partner-api-service",
+      "psc_connection_status": "ACCEPTED",
+      "_note": "Per gcp_network_mcp.models.private_service_connect's own module docstring, a PSC consumer endpoint is not a distinct GCP resource type -- it's a regular ForwardingRule whose target is a Service Attachment URL, reported here in PscEndpoint's PSC-specific vocabulary. state='accepted' is normalized from psc_connection_status=ACCEPTED. service_name references the producer-side service attachment in a different project (acme-partner-services-654321) that this collection did not itself collect -- unlike the peering.gcp-prod-shared-vpc-to-partner-vpc.json example, this is not represented as an UNRESOLVED topology node since a PSC endpoint's service_name is a free-text reference, not a field this contract expects to resolve to a URN."
+    }
+  }
+}

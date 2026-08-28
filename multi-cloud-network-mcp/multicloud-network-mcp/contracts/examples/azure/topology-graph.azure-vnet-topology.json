@@ -1,0 +1,168 @@
+{
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "completeness": "partial",
+  "nodes": [
+    {
+      "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+      "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+      "kind": "resource",
+      "resource_type": "network",
+      "label": "vnet-app-eastus",
+      "scope": {
+        "provider": "azure",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+        "project_id": null,
+        "resource_group": "rg-networking",
+        "region": null,
+        "location": "eastus",
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {
+        "environment": "production"
+      },
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:transit-hub:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+      "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+      "kind": "resource",
+      "resource_type": "transit-hub",
+      "label": "vhub-eastus",
+      "scope": {
+        "provider": "azure",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+        "project_id": null,
+        "resource_group": "rg-networking",
+        "region": null,
+        "location": "eastus",
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-gateway:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+      "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+      "kind": "resource",
+      "resource_type": "vpn-gateway",
+      "label": "vpngw-vwan-eastus",
+      "scope": {
+        "provider": "azure",
+        "tenant_id": null,
+        "account_id": null,
+        "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+        "project_id": null,
+        "resource_group": "rg-networking",
+        "region": null,
+        "location": "eastus",
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:azure::network:external-vpn-site%3A203.0.113.10",
+      "native_id": "203.0.113.10",
+      "kind": "external",
+      "resource_type": null,
+      "label": "on-premises VPN site (site-onprem-branch1)",
+      "scope": null,
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:azure:subscription_id=99999999-8888-4777-9666-555555555555,location=eastus,resource_group=rg-shared-services:network:/subscriptions/99999999-8888-4777-9666-555555555555/resourceGroups/rg-shared-services/providers/Microsoft.Network/virtualNetworks/vnet-shared-services",
+      "native_id": "/subscriptions/99999999-8888-4777-9666-555555555555/resourceGroups/rg-shared-services/providers/Microsoft.Network/virtualNetworks/vnet-shared-services",
+      "kind": "unresolved",
+      "resource_type": "network",
+      "label": "vnet-shared-services (cross-subscription peer)",
+      "scope": null,
+      "ownership": {
+        "owner_account_id": null,
+        "owner_subscription_id": "99999999-8888-4777-9666-555555555555",
+        "owner_project_id": null,
+        "owner_tenant_id": null
+      },
+      "tags": {},
+      "extensions": {}
+    }
+  ],
+  "edges": [
+    {
+      "source_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+      "target_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:transit-hub:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+      "relationship": "attached_to",
+      "evidence": [
+        {
+          "source": "hub_virtual_network_connection:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus/hubVirtualNetworkConnections/cn-vnet-app-to-hub",
+          "detail": "HubVirtualNetworkConnection.remote_virtual_network_id references vnet-app-eastus"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-gateway:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+      "target_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:transit-hub:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+      "relationship": "attached_to",
+      "evidence": [
+        {
+          "source": "vpn_gateway:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+          "detail": "VpnGateway.virtual_hub_id references vhub-eastus"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-gateway:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+      "target_urn": "urn:mcnet:v1:azure::network:external-vpn-site%3A203.0.113.10",
+      "relationship": "terminates_at",
+      "evidence": [
+        {
+          "source": "vpn_connection:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus/vpnConnections/cn-onprem-site1",
+          "detail": "VpnConnection.remote_vpn_site_id resolves to site-onprem-branch1 with peer IP 203.0.113.10"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+      "target_urn": "urn:mcnet:v1:azure:subscription_id=99999999-8888-4777-9666-555555555555,location=eastus,resource_group=rg-shared-services:network:/subscriptions/99999999-8888-4777-9666-555555555555/resourceGroups/rg-shared-services/providers/Microsoft.Network/virtualNetworks/vnet-shared-services",
+      "relationship": "peers_with",
+      "evidence": [
+        {
+          "source": "virtual_network_peering:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus/virtualNetworkPeerings/peer-to-shared-services",
+          "detail": "VirtualNetworkPeering.remote_virtual_network_id references a VNet in subscription 99999999-8888-4777-9666-555555555555, outside this collection's scope"
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "resource_type": "peering",
+      "resource_type_hint": "peering",
+      "code": "cross_subscription_peer_unresolved",
+      "message": "Peering target vnet-shared-services lives in subscription 99999999-8888-4777-9666-555555555555, which this collection run has no RBAC access to enumerate; the peer VNet's own address space/state could not be verified.",
+      "scope": null
+    }
+  ],
+  "api_call_count": 14
+}

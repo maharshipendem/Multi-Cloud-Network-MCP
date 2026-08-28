@@ -15,6 +15,7 @@ from aws_cloudops_mcp.aws.client_factory import ClientFactory
 from aws_cloudops_mcp.config import Settings, get_settings
 from aws_cloudops_mcp.logging.setup import configure_logging, get_logger
 from aws_cloudops_mcp.tools import (
+    contracts,
     diagnostics,
     directconnect,
     dns,
@@ -74,6 +75,7 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     hybrid_topology.register(mcp, client_factory)
     network_insights.register(mcp, client_factory)
     diagnostics.register(mcp, client_factory)
+    contracts.register(mcp, client_factory)
 
     _logger.info(
         "server initialized",

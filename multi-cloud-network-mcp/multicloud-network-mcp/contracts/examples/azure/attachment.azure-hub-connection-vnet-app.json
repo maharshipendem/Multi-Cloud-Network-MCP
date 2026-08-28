@@ -1,0 +1,35 @@
+{
+  "extensions": {
+    "azure": {
+      "allow_hub_to_remote_vnet_transit": true,
+      "allow_remote_vnet_to_use_hub_vnet_gateways": true,
+      "enable_internet_security": true
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:attachment:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus/hubVirtualNetworkConnections/cn-vnet-app-to-hub",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus/hubVirtualNetworkConnections/cn-vnet-app-to-hub",
+  "resource_type": "attachment",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "cn-vnet-app-to-hub",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "HubVirtualNetworkConnectionsOperations.list",
+  "collection_completeness": "complete",
+  "transit_hub_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:transit-hub:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+  "attached_resource_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+  "attached_resource_type": "network",
+  "state": "succeeded",
+  "state_reason": null
+}

@@ -1,0 +1,54 @@
+{
+  "rule_id": "azure-nsg-ssh-open-to-internet",
+  "rule_version": "1.0.0",
+  "provider": "azure",
+  "severity": "high",
+  "confidence": "high",
+  "summary": "NSG rule AllowSshInbound on nsg-app permits inbound TCP/22 from 0.0.0.0/0 to subnet snet-app, exposing SSH management access to the public internet.",
+  "affected_resources": [
+    "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:firewall-rule:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app/securityRules/AllowSshInbound",
+    "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network-interface:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01",
+    "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:subnet:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus/subnets/snet-app"
+  ],
+  "evidence": [
+    {
+      "source": "security_rule:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app/securityRules/AllowSshInbound",
+      "detail": "direction=Inbound, access=Allow, protocol=Tcp, destinationPortRange=22, sourceAddressPrefix=0.0.0.0/0, priority=100"
+    },
+    {
+      "source": "network_interface:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01",
+      "detail": "nic-app01 is a member of nsg-app and has private IP 10.20.1.4 in snet-app"
+    }
+  ],
+  "reasoning": [
+    {
+      "step": 1,
+      "description": "Rule AllowSshInbound is an Allow rule at priority 100 with no lower-priority rule for TCP/22 that would override it.",
+      "evidence_indices": [
+        0
+      ]
+    },
+    {
+      "step": 2,
+      "description": "Source address prefix 0.0.0.0/0 matches any internet-routable source address.",
+      "evidence_indices": [
+        0
+      ]
+    },
+    {
+      "step": 3,
+      "description": "nic-app01 is directly associated with nsg-app, so the rule is enforced on its traffic.",
+      "evidence_indices": [
+        1
+      ]
+    }
+  ],
+  "assumptions": [
+    "No higher-priority Deny rule targeting TCP/22 exists on nsg-app's default_security_rules (default rules are always priority >= 65000, below this custom rule's priority 100)."
+  ],
+  "limitations": [
+    "Does not evaluate whether a subnet-level Azure Firewall or NVA route intercepts this traffic before it reaches nic-app01 -- see route.azure-route-to-onprem.json for the subnet's UDR, which does not cover 0.0.0.0/0 and therefore does not mitigate this finding."
+  ],
+  "freshness": "2026-08-28T12:00:00Z",
+  "remediation": "Restrict AllowSshInbound's source_address_prefix to a known management CIDR (e.g. a bastion subnet or VPN client range) instead of 0.0.0.0/0, or replace direct SSH exposure with Azure Bastion."
+}

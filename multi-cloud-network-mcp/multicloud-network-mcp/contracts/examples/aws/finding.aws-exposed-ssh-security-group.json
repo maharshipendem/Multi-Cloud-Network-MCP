@@ -1,0 +1,54 @@
+{
+  "rule_id": "aws.security-group.ingress-ssh-open-to-internet",
+  "rule_version": "1.0.0",
+  "provider": "aws",
+  "severity": "high",
+  "confidence": "high",
+  "summary": "Security group rule sgr-0123456789abcdef0 on sg-0abc123def456789 allows inbound TCP/22 (SSH) from 0.0.0.0/0, exposing SSH management access on network interface eni-0123456789abcdef0 to the entire internet.",
+  "affected_resources": [
+    "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:firewall-rule:sgr-0123456789abcdef0",
+    "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network-interface:eni-0123456789abcdef0"
+  ],
+  "evidence": [
+    {
+      "source": "security_group_rule:sgr-0123456789abcdef0",
+      "detail": "is_egress=false, ip_protocol=tcp, from_port=22, to_port=22, peer.type=ipv4, peer.value=0.0.0.0/0"
+    },
+    {
+      "source": "network_interface:eni-0123456789abcdef0",
+      "detail": "security_group_ids includes sg-0abc123def456789; public_ip=203.0.113.55"
+    }
+  ],
+  "reasoning": [
+    {
+      "step": 1,
+      "description": "Rule sgr-0123456789abcdef0 permits inbound tcp/22 from source 0.0.0.0/0 (all IPv4 addresses).",
+      "evidence_indices": [
+        0
+      ]
+    },
+    {
+      "step": 2,
+      "description": "Network interface eni-0123456789abcdef0 is a member of security group sg-0abc123def456789 and has a public IP address, making it internet-reachable.",
+      "evidence_indices": [
+        1
+      ]
+    },
+    {
+      "step": 3,
+      "description": "Combining steps 1-2: an arbitrary internet host can reach SSH (tcp/22) on eni-0123456789abcdef0, independent of any NACL evaluation.",
+      "evidence_indices": [
+        0,
+        1
+      ]
+    }
+  ],
+  "assumptions": [
+    "The security group is currently attached to a running, internet-facing workload rather than an unused/placeholder interface."
+  ],
+  "limitations": [
+    "This finding evaluates the Security Group layer only. A Network ACL deny rule (stateless, evaluated independently -- see firewall-rule.aws-nacl-deny-inbound.json) could still block some or all of this traffic; NACL evaluation was out of scope for this rule and is not represented in this finding's verdict."
+  ],
+  "freshness": "2026-08-28T12:00:00Z",
+  "remediation": "Restrict source_ranges on sgr-0123456789abcdef0 to known management CIDRs (e.g. a corporate VPN or bastion range) instead of 0.0.0.0/0, or require access via AWS Systems Manager Session Manager instead of a routable SSH port."
+}

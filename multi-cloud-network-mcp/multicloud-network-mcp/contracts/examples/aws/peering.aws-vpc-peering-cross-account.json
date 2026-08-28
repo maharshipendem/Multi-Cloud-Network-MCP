@@ -1,0 +1,42 @@
+{
+  "extensions": {
+    "aws": {
+      "status_code": "active",
+      "accepter": {
+        "vpc_id": "vpc-0fedcba9876543210",
+        "owner_id": "999988887777",
+        "region": "us-west-2"
+      },
+      "note": "remote_network_urn is None because the accepter VPC is in a different (unresolvable, cross-account) collection scope -- see topology-graph.aws-vpc-topology.json's UNRESOLVED node for the same peer. AWS exposes no allow_forwarded_traffic/exchange_subnet_routes-equivalent fields on VpcPeeringConnection, so those stay None rather than a fabricated False."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:peering:pcx-0123456789abcdef0",
+  "native_id": "pcx-0123456789abcdef0",
+  "resource_type": "peering",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeVpcPeeringConnections",
+  "collection_completeness": "complete",
+  "local_network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "remote_network_urn": null,
+  "remote_native_id": "vpc-0fedcba9876543210",
+  "state": "active",
+  "allow_forwarded_traffic": null,
+  "exchange_subnet_routes": null,
+  "import_custom_routes": null,
+  "export_custom_routes": null
+}

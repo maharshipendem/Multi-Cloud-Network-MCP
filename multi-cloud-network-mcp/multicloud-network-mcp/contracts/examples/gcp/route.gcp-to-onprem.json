@@ -1,0 +1,33 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:route:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/routes/to-onprem-172-16",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/routes/to-onprem-172-16",
+  "resource_type": "route",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "to-onprem-172-16",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "RoutesClient.list",
+  "collection_completeness": "complete",
+  "destination_cidr": "172.16.0.0/16",
+  "destination_ipv6_cidr": null,
+  "next_hop_type": "vpn-tunnel",
+  "next_hop_target": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-tunnel:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnTunnels/acme-ha-vpn-gw1-tunnel-0",
+  "origin": "unknown",
+  "state": "unknown",
+  "priority": 1000,
+  "extensions": {
+    "gcp": {
+      "network_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+      "dest_range": "172.16.0.0/16",
+      "route_type": "STATIC",
+      "route_status": "ACTIVE",
+      "tags": [],
+      "_note": "origin='unknown' and state='unknown' are the CORRECT normalization result per contracts/normalization/route.py's own docstring -- GCP's Route API returns no origin/state field at all, only configuration (destination, priority, next hop). priority=1000 is populated because that is GCP's own genuine strength here (an explicit tie-break AWS/Azure don't have). The canonical Route model has no network_urn field (routes reference a network only indirectly via RouteTable elsewhere, and GCP has no RouteTable) so the owning network is preserved only here in extensions.gcp.network_self_link -- see NOTES.md."
+    }
+  }
+}

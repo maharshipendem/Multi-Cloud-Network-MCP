@@ -1,0 +1,211 @@
+{
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "completeness": "partial",
+  "nodes": [
+    {
+      "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+      "native_id": "vpc-0abc123def456789",
+      "kind": "resource",
+      "resource_type": "network",
+      "label": "prod-vpc",
+      "scope": {
+        "provider": "aws",
+        "tenant_id": null,
+        "account_id": "123456789012",
+        "subscription_id": null,
+        "project_id": null,
+        "resource_group": null,
+        "region": "us-east-1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {
+        "Name": "prod-vpc"
+      },
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1,zone=us-east-1a:subnet:subnet-0123456789abcdef0",
+      "native_id": "subnet-0123456789abcdef0",
+      "kind": "resource",
+      "resource_type": "subnet",
+      "label": "prod-public-1a",
+      "scope": {
+        "provider": "aws",
+        "tenant_id": null,
+        "account_id": "123456789012",
+        "subscription_id": null,
+        "project_id": null,
+        "resource_group": null,
+        "region": "us-east-1",
+        "location": null,
+        "zone": "us-east-1a",
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {
+        "Name": "prod-public-1a"
+      },
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:gateway:igw-0123456789abcdef0",
+      "native_id": "igw-0123456789abcdef0",
+      "kind": "resource",
+      "resource_type": "gateway",
+      "label": "prod-igw",
+      "scope": {
+        "provider": "aws",
+        "tenant_id": null,
+        "account_id": "123456789012",
+        "subscription_id": null,
+        "project_id": null,
+        "resource_group": null,
+        "region": "us-east-1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {
+        "Name": "prod-igw"
+      },
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:vpn-gateway:vgw-0123456789abcdef0",
+      "native_id": "vgw-0123456789abcdef0",
+      "kind": "resource",
+      "resource_type": "vpn-gateway",
+      "label": "prod-vgw",
+      "scope": {
+        "provider": "aws",
+        "tenant_id": null,
+        "account_id": "123456789012",
+        "subscription_id": null,
+        "project_id": null,
+        "resource_group": null,
+        "region": "us-east-1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      },
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:aws::external:198.51.100.10",
+      "native_id": "198.51.100.10",
+      "kind": "external",
+      "resource_type": null,
+      "label": "on-premises VPN peer (198.51.100.10)",
+      "scope": null,
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    },
+    {
+      "urn": "urn:mcnet:v1:aws:account_id=999988887777,region=us-west-2:network:vpc-0fedcba9876543210",
+      "native_id": "vpc-0fedcba9876543210",
+      "kind": "unresolved",
+      "resource_type": "network",
+      "label": "peered VPC (cross-account, unresolved)",
+      "scope": null,
+      "ownership": null,
+      "tags": {},
+      "extensions": {}
+    }
+  ],
+  "edges": [
+    {
+      "source_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+      "target_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1,zone=us-east-1a:subnet:subnet-0123456789abcdef0",
+      "relationship": "contains",
+      "evidence": [
+        {
+          "source": "subnet:subnet-0123456789abcdef0",
+          "detail": "Subnet.vpc_id == vpc-0abc123def456789"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:gateway:igw-0123456789abcdef0",
+      "target_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+      "relationship": "attached_to",
+      "evidence": [
+        {
+          "source": "internet_gateway:igw-0123456789abcdef0",
+          "detail": "InternetGatewayAttachment.vpc_id == vpc-0abc123def456789, state=available"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:vpn-gateway:vgw-0123456789abcdef0",
+      "target_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+      "relationship": "attached_to",
+      "evidence": [
+        {
+          "source": "vpn_gateway:vgw-0123456789abcdef0",
+          "detail": "VpnGatewayVpcAttachment.vpc_id == vpc-0abc123def456789, state=attached"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:vpn-gateway:vgw-0123456789abcdef0",
+      "target_urn": "urn:mcnet:v1:aws::external:198.51.100.10",
+      "relationship": "terminates_at",
+      "evidence": [
+        {
+          "source": "vpn_connection:vpn-0123456789abcdef0",
+          "detail": "VpnTunnel.outside_ip_address == 203.0.113.1, peer CustomerGateway.ip_address == 198.51.100.10"
+        }
+      ]
+    },
+    {
+      "source_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+      "target_urn": "urn:mcnet:v1:aws:account_id=999988887777,region=us-west-2:network:vpc-0fedcba9876543210",
+      "relationship": "peers_with",
+      "evidence": [
+        {
+          "source": "vpc_peering_connection:pcx-0123456789abcdef0",
+          "detail": "VpcPeeringConnection.status_code == active, accepter.vpc_id == vpc-0fedcba9876543210"
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "resource_type": "network",
+      "resource_type_hint": "network",
+      "code": "cross_account_permission_denied",
+      "message": "Peered VPC vpc-0fedcba9876543210 is owned by account 999988887777, which this collection's credentials have no cross-account read access to (no assumable role / RAM share visible). The peering itself (pcx-0123456789abcdef0) was observed from the local account's side, but the peer VPC's own attributes could not be resolved, so it is represented as an UNRESOLVED node rather than a RESOURCE node or a silently dropped reference.",
+      "scope": {
+        "provider": "aws",
+        "tenant_id": null,
+        "account_id": "123456789012",
+        "subscription_id": null,
+        "project_id": null,
+        "resource_group": null,
+        "region": "us-east-1",
+        "location": null,
+        "zone": null,
+        "collected_at": "2026-08-28T12:00:00Z"
+      }
+    }
+  ],
+  "api_call_count": 14
+}

@@ -15,6 +15,7 @@ from azure_network_mcp.auth.session import SubscriptionContext
 from azure_network_mcp.config import Settings, get_settings
 from azure_network_mcp.logging.setup import configure_logging, get_logger
 from azure_network_mcp.tools import (
+    contracts,
     diagnostics,
     expressroute,
     firewall,
@@ -74,6 +75,7 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     network_watcher.register(mcp, client_factory)
     monitor.register(mcp, client_factory)
     diagnostics.register(mcp, client_factory)
+    contracts.register(mcp, client_factory)
 
     _logger.info(
         "server initialized",

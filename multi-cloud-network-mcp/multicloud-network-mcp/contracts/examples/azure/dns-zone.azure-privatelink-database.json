@@ -1,0 +1,35 @@
+{
+  "extensions": {
+    "azure": {
+      "number_of_virtual_network_links": 1
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:dns-zone:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/privateDnsZones/privatelink.database.windows.net",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/privateDnsZones/privatelink.database.windows.net",
+  "resource_type": "dns-zone",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "privatelink.database.windows.net",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "PrivateZonesOperations.list_by_resource_group",
+  "collection_completeness": "complete",
+  "dns_name": "privatelink.database.windows.net",
+  "is_private": true,
+  "record_set_count": 4,
+  "linked_network_urns": [
+    "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus"
+  ],
+  "name_servers": []
+}

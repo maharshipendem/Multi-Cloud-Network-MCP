@@ -1,0 +1,37 @@
+{
+  "extensions": {
+    "aws": {
+      "synthesized_from": "NetworkInterface.public_ip",
+      "network_interface_id": "eni-0123456789abcdef0",
+      "note": "AWS has no first-class Elastic IP resource model; this record was synthesized by the adapter from the owning NetworkInterface's public_ip field, not read from a dedicated AWS Elastic IP API call."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:address:eipalloc-0abc123def456789",
+  "native_id": "eipalloc-0abc123def456789",
+  "resource_type": "address",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {
+    "Name": "prod-web-eip-1"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeNetworkInterfaces (synthesized -- see NOTES.md)",
+  "collection_completeness": "complete",
+  "ip_address": "203.0.113.55",
+  "ip_version": "ipv4",
+  "allocation_method": "static",
+  "associated_resource_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network-interface:eni-0123456789abcdef0",
+  "is_public": true
+}

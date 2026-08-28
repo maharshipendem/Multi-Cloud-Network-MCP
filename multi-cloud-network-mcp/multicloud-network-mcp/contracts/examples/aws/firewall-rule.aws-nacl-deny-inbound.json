@@ -1,0 +1,45 @@
+{
+  "extensions": {
+    "aws": {
+      "network_acl_id": "acl-0123456789abcdef0",
+      "rule_number": 100,
+      "egress": false,
+      "note": "AWS NetworkAclEntry -- stateless, explicitly ordered by rule_number, evaluated first-match. stateful=False distinguishes this from every Security Group rule this contract also maps onto FirewallRule."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:firewall-rule:acl-0123456789abcdef0%3Aingress%3A100",
+  "native_id": "acl-0123456789abcdef0:ingress:100",
+  "resource_type": "firewall-rule",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeNetworkAcls",
+  "collection_completeness": "complete",
+  "direction": "ingress",
+  "action": "deny",
+  "protocol": "all",
+  "port_range": null,
+  "source_ranges": [
+    "198.51.100.0/24"
+  ],
+  "destination_ranges": [],
+  "priority": 100,
+  "stateful": false,
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "associated_resource_urns": [
+    "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1,zone=us-east-1a:subnet:subnet-0123456789abcdef0"
+  ]
+}

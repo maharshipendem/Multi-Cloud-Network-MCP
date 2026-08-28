@@ -1,0 +1,39 @@
+{
+  "extensions": {
+    "aws": {
+      "hosted_zone_id": "Z0123456789ABCDEFGHIJ",
+      "note": "Route 53 is a global service -- scope.region is intentionally omitted (only account_id is set) to represent that, per CloudScope's docs. AWS's own model keeps a bootstrap 'region' field for the API endpoint used; that raw detail, if needed, belongs under extensions, not this contract's scope.region."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012:dns-zone:Z0123456789ABCDEFGHIJ",
+  "native_id": "Z0123456789ABCDEFGHIJ",
+  "resource_type": "dns-zone",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": null,
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "example.com.",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "route53:ListHostedZones",
+  "collection_completeness": "complete",
+  "dns_name": "example.com.",
+  "is_private": false,
+  "record_set_count": 12,
+  "linked_network_urns": [],
+  "name_servers": [
+    "ns-123.awsdns-45.com.",
+    "ns-456.awsdns-67.net.",
+    "ns-789.awsdns-89.org.",
+    "ns-012.awsdns-01.co.uk."
+  ]
+}

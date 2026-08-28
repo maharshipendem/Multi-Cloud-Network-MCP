@@ -1,0 +1,31 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:transit-hub:projects/acme-prod-networking-123456/locations/global/hubs/acme-global-ncc-hub",
+  "native_id": "projects/acme-prod-networking-123456/locations/global/hubs/acme-global-ncc-hub",
+  "resource_type": "transit-hub",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "acme-global-ncc-hub",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "HubServiceClient.list_hubs",
+  "collection_completeness": "complete",
+  "asn": null,
+  "state": "active",
+  "route_table_urns": [],
+  "cidr_blocks": [],
+  "extensions": {
+    "gcp": {
+      "unique_id": "1234567890123456789",
+      "policy_mode": "PRESET",
+      "preset_topology": "MESH",
+      "export_psc": true,
+      "route_table_names": ["projects/acme-prod-networking-123456/locations/global/hubs/acme-global-ncc-hub/routeTables/default"],
+      "spoke_count": 2,
+      "_note": "cidr_blocks is empty per the TransitHub model's own docstring -- an NCC Hub, like an AWS Transit Gateway, has no CIDR of its own. asn is null: NCC hubs carry no ASN (that lives on a Cloud Router, which has no canonical resource type in this contract -- see NOTES.md). route_table_urns is empty because NCC route tables (NccRouteTable) are not one of this contract's 21 canonical resource types either; the raw route table names are preserved in extensions.gcp.route_table_names instead."
+    }
+  }
+}

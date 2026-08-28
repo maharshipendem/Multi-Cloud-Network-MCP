@@ -1,0 +1,37 @@
+{
+  "extensions": {
+    "azure": {
+      "virtual_hub_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+      "vpn_gateway_scale_unit": 2
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-gateway:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+  "resource_type": "vpn-gateway",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "vpngw-vwan-eastus",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "VpnGatewaysOperations.list_by_resource_group",
+  "collection_completeness": "complete",
+  "network_urn": null,
+  "asn": 65515,
+  "is_ha": true,
+  "interface_ip_addresses": [
+    "20.55.100.10",
+    "20.55.100.11"
+  ],
+  "state": "succeeded"
+}

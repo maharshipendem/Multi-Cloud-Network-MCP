@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/finding.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.Finding (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "ReasoningStep": {
+      "description": "One step in a deterministic inference chain from evidence to\nconclusion. ``step`` is 1-indexed and steps are always emitted in\nthe order they were actually evaluated. ``evidence_indices``\nreferences positions into the owning ``Finding.evidence`` list.",
+      "properties": {
+        "step": {
+          "title": "Step",
+          "type": "integer"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Evidence Indices",
+          "type": "array"
+        }
+      },
+      "required": [
+        "step",
+        "description"
+      ],
+      "title": "ReasoningStep",
+      "type": "object"
+    },
+    "SourceEvidence": {
+      "description": "One specific, already-collected fact a topology edge or\ndiagnostic finding's reasoning relies on -- never an inference\ndressed up as an observation. Identical shape to what all three\ncloud repos' own diagnostics engines already call ``Evidence``;\nrenamed ``SourceEvidence`` here only to avoid colliding with this\nmodule's own vocabulary once re-exported alongside ``CloudScope``/\n``Ownership``.\n\n``source`` identifies exactly which provider-native record the fact\ncame from (e.g. ``\"route_table:rtb-0123\"``,\n``\"firewall_rule:allow-internal@vpc-1\"``); ``detail`` is the\nspecific field/value that was observed.",
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "detail"
+      ],
+      "title": "SourceEvidence",
+      "type": "object"
+    }
+  },
+  "description": "One deterministic diagnostic conclusion.\n\nEvery field is present unconditionally -- not optional-and-usually-\nomitted. A finding with ``confidence`` ``\"indeterminate\"`` still\ncarries a ``summary`` (what could not be determined, and why) and\n``limitations`` (what evidence was missing); it is a first-class\noutput, never an error or a silent omission -- a rule that cannot\nreach a conclusion because required evidence is missing must say so\nexplicitly, not look identical to \"checked, found no issue.\"\n\n``rule_id``/``rule_version`` identify which versioned rule produced\nthis finding (see ``docs/normalization.md`` for how each provider's\nown rule catalog maps its rule IDs into this contract -- rule IDs\nthemselves are NOT unified across providers, since the underlying\nchecks genuinely differ per cloud; a consumer correlates findings by\n``affected_resources``/``severity``/``confidence``, not by expecting\nthe same ``rule_id`` string to mean the same thing across providers).\n\n``remediation`` is always advisory text for a human to act on --\nnothing in this contract (or any conformant adapter) executes it.",
+  "properties": {
+    "rule_id": {
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "rule_version": {
+      "title": "Rule Version",
+      "type": "string"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "severity": {
+      "title": "Severity",
+      "type": "string"
+    },
+    "confidence": {
+      "title": "Confidence",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "affected_resources": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Affected Resources",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/SourceEvidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "reasoning": {
+      "items": {
+        "$ref": "#/$defs/ReasoningStep"
+      },
+      "title": "Reasoning",
+      "type": "array"
+    },
+    "assumptions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "freshness": {
+      "title": "Freshness",
+      "type": "string"
+    },
+    "remediation": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Remediation"
+    }
+  },
+  "required": [
+    "rule_id",
+    "rule_version",
+    "provider",
+    "severity",
+    "confidence",
+    "summary",
+    "freshness"
+  ],
+  "title": "Finding",
+  "type": "object"
+}

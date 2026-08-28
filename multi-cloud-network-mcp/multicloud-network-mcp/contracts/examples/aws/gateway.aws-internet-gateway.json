@@ -1,0 +1,35 @@
+{
+  "extensions": {
+    "aws": {
+      "owner_id": "123456789012"
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:gateway:igw-0123456789abcdef0",
+  "native_id": "igw-0123456789abcdef0",
+  "resource_type": "gateway",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-igw",
+  "tags": {
+    "Name": "prod-igw"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeInternetGateways",
+  "collection_completeness": "complete",
+  "gateway_type": "internet",
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "subnet_urn": null,
+  "public_ip_urns": [],
+  "state": "available"
+}

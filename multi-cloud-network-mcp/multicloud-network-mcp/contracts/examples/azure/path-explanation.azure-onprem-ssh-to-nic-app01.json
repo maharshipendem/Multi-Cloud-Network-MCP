@@ -1,0 +1,75 @@
+{
+  "provider": "azure",
+  "source": "203.0.113.10",
+  "destination": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network-interface:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01",
+  "protocol": "tcp",
+  "port": 22,
+  "overall_verdict": "allowed",
+  "findings": [
+    {
+      "rule_id": "azure-path-nsg-evaluation",
+      "rule_version": "1.0.0",
+      "provider": "azure",
+      "severity": "info",
+      "confidence": "high",
+      "summary": "NSG nsg-app allows inbound TCP/22 from 203.0.113.10 to nic-app01 via rule AllowSshInbound (source range 0.0.0.0/0 includes this source).",
+      "affected_resources": [
+        "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:firewall-rule:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app/securityRules/AllowSshInbound",
+        "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network-interface:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01"
+      ],
+      "evidence": [
+        {
+          "source": "security_rule:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app/securityRules/AllowSshInbound",
+          "detail": "access=Allow, protocol=Tcp, destinationPortRange=22, sourceAddressPrefix=0.0.0.0/0"
+        }
+      ],
+      "reasoning": [
+        {
+          "step": 1,
+          "description": "203.0.113.10 falls within source range 0.0.0.0/0 for rule AllowSshInbound.",
+          "evidence_indices": [
+            0
+          ]
+        }
+      ],
+      "assumptions": [],
+      "limitations": [],
+      "freshness": "2026-08-28T12:00:00Z",
+      "remediation": null
+    },
+    {
+      "rule_id": "azure-path-route-evaluation",
+      "rule_version": "1.0.0",
+      "provider": "azure",
+      "severity": "info",
+      "confidence": "high",
+      "summary": "Effective route for 203.0.113.10 traffic to snet-app resolves via the VPN gateway path (BGP-propagated), no blackhole or conflicting UDR observed for this source.",
+      "affected_resources": [
+        "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:route:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/routeTables/rt-app-subnet/routes/to-onprem-via-fw",
+        "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-tunnel:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus/vpnConnections/cn-onprem-site1"
+      ],
+      "evidence": [
+        {
+          "source": "vpn_connection:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus/vpnConnections/cn-onprem-site1",
+          "detail": "connection_status=Connected, enable_bgp=true, remote site address space includes 203.0.113.0/24"
+        }
+      ],
+      "reasoning": [
+        {
+          "step": 1,
+          "description": "VPN tunnel cn-onprem-site1 is up and BGP-enabled, so on-premises routes are propagated into the VNet's effective route table.",
+          "evidence_indices": [
+            0
+          ]
+        }
+      ],
+      "assumptions": [
+        "The on-premises firewall permits outbound TCP/22 toward 10.20.1.4 (not observable from Azure)."
+      ],
+      "limitations": [],
+      "freshness": "2026-08-28T12:00:00Z",
+      "remediation": null
+    }
+  ],
+  "freshness": "2026-08-28T12:00:00Z"
+}

@@ -1,0 +1,40 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:interconnect-attachment:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/interconnectAttachments/acme-dedicated-va-us-central1",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/interconnectAttachments/acme-dedicated-va-us-central1",
+  "resource_type": "interconnect-attachment",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "region": "us-central1",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "acme-dedicated-va-us-central1",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "InterconnectAttachmentsClient.list",
+  "collection_completeness": "complete",
+  "interconnect_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:interconnect:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/interconnects/acme-dedicated-interconnect-1",
+  "vlan_id": 301,
+  "asn": null,
+  "router_urn": null,
+  "state": "active",
+  "redacted": true,
+  "extensions": {
+    "gcp": {
+      "attachment_type": "DEDICATED",
+      "edge_availability_domain": "AVAILABILITY_DOMAIN_1",
+      "bandwidth": "BPS_10G",
+      "mtu": 1440,
+      "operational_status": "OS_ACTIVE",
+      "cloud_router_ip_address": "169.254.100.1",
+      "customer_router_ip_address": "169.254.100.2",
+      "partner_asn": null,
+      "partner_metadata": null,
+      "encryption": "NONE",
+      "stack_type": "IPV4_ONLY",
+      "router_self_link": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/routers/acme-prod-shared-vpc-cr1",
+      "_note": "router_urn is deliberately left null rather than pointing at a resource: a GCP InterconnectAttachment has no direct network reference of its own -- it attaches to a Cloud Router, whose network you resolve separately (Router.network), per gcp_network_mcp.models.interconnect's own field comment. Cloud Router is not one of this contract's 21 canonical resource types (see NOTES.md), so there is no lossless URN to populate router_urn with; the raw router_self_link is preserved here instead rather than guessing at a stand-in (e.g. pointing at the owning Network or the NCC transit-hub would overclaim a relationship this attachment doesn't directly assert). asn is null for the same reason vlan_id's partner_asn is null: this is a Dedicated (not Partner) attachment, so partner_asn is never populated by GCP, and the Cloud Router's own local ASN -- the only other candidate BGP identity here -- is not exposed on the attachment itself. redacted=true is permanent: no pairing-key-bearing field exists anywhere on this model."
+    }
+  }
+}

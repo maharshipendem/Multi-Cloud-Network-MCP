@@ -1,0 +1,38 @@
+{
+  "extensions": {
+    "azure": {
+      "remote_vpn_site_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnSites/site-onprem-branch1",
+      "vpn_connection_protocol_type": "IKEv2",
+      "routing_weight": 0
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-tunnel:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus/vpnConnections/cn-onprem-site1",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus/vpnConnections/cn-onprem-site1",
+  "resource_type": "vpn-tunnel",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "cn-onprem-site1",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "VpnConnectionsOperations.list_by_vpn_gateway",
+  "collection_completeness": "complete",
+  "gateway_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:vpn-gateway:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/vpnGateways/vpngw-vwan-eastus",
+  "peer_gateway_urn": null,
+  "peer_ip": "203.0.113.10",
+  "status": "up",
+  "native_status": "Connected",
+  "bgp_enabled": true,
+  "bgp_asn": 65010,
+  "redacted": true
+}

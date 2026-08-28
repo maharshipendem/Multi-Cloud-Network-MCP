@@ -1,0 +1,47 @@
+{
+  "extensions": {
+    "azure": {
+      "native_protocol": "Tcp",
+      "native_access": "Allow",
+      "native_direction": "Inbound",
+      "description": "Allow SSH from anywhere for break-glass admin access"
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:firewall-rule:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app/securityRules/AllowSshInbound",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkSecurityGroups/nsg-app/securityRules/AllowSshInbound",
+  "resource_type": "firewall-rule",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "AllowSshInbound",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "SecurityRulesOperations.list",
+  "collection_completeness": "complete",
+  "direction": "ingress",
+  "action": "allow",
+  "protocol": "tcp",
+  "port_range": "22",
+  "source_ranges": [
+    "0.0.0.0/0"
+  ],
+  "destination_ranges": [
+    "10.20.1.0/24"
+  ],
+  "priority": 100,
+  "stateful": true,
+  "network_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+  "associated_resource_urns": [
+    "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network-interface:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/networkInterfaces/nic-app01"
+  ]
+}

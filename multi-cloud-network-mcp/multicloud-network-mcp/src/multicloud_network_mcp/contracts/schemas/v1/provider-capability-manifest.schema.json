@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/provider-capability-manifest.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.ProviderCapabilityManifest (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "Provider": {
+      "enum": [
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": "Provider",
+      "type": "string"
+    },
+    "ResourceType": {
+      "description": "The canonical, kebab-case resource-type vocabulary every URN's\n``<resource-type>`` field and every ``TopologyNode.kind``/\n``Finding.affected_resources`` entry draws from. See\n``docs/normalization.md`` for the full per-provider mapping table\n(e.g. AWS Security Group Rule / Azure NSG Security Rule / GCP\nFirewall Rule all map to ``FIREWALL_RULE``).",
+      "enum": [
+        "network",
+        "subnet",
+        "network-interface",
+        "address",
+        "route-table",
+        "route",
+        "firewall-rule",
+        "gateway",
+        "transit-hub",
+        "attachment",
+        "peering",
+        "vpn-gateway",
+        "vpn-tunnel",
+        "interconnect",
+        "interconnect-attachment",
+        "dns-zone",
+        "dns-resolver",
+        "dns-rule",
+        "load-balancer",
+        "endpoint",
+        "observability-reference"
+      ],
+      "title": "ResourceType",
+      "type": "string"
+    },
+    "ResourceTypeSupport": {
+      "description": "One resource type's normalized-export coverage for a given\nprovider -- which MCP tool produces it, and whether the mapping is\nexact or best-effort (see ``docs/normalization.md`` for what\n\"best-effort\" means for a given type -- e.g. AWS has no first-class\nElastic IP resource, so its ``ADDRESS`` mapping is synthesized from\nnested fields, not a 1:1 export).",
+      "properties": {
+        "resource_type": {
+          "$ref": "#/$defs/ResourceType"
+        },
+        "export_tool": {
+          "title": "Export Tool",
+          "type": "string"
+        },
+        "exact_mapping": {
+          "default": true,
+          "title": "Exact Mapping",
+          "type": "boolean"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "resource_type",
+        "export_tool"
+      ],
+      "title": "ResourceTypeSupport",
+      "type": "object"
+    }
+  },
+  "description": "What one provider's adapter can do, as of one point in time.\n\n``contract_version`` is the exact ``CONTRACT_VERSION`` this manifest\nwas generated against; ``min_supported_contract_version`` is the\noldest contract *minor* version (same major) this adapter still\nround-trips without error -- normally the previous minor release,\nper this contract's backward-compatibility policy (see\n``docs/versioning.md``). A federation layer should call\n``negotiate()`` rather than compare these strings itself.",
+  "properties": {
+    "provider": {
+      "$ref": "#/$defs/Provider"
+    },
+    "adapter_package": {
+      "title": "Adapter Package",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "contract_version": {
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "min_supported_contract_version": {
+      "title": "Min Supported Contract Version",
+      "type": "string"
+    },
+    "urn_grammar_version": {
+      "title": "Urn Grammar Version",
+      "type": "integer"
+    },
+    "supported_resource_types": {
+      "items": {
+        "$ref": "#/$defs/ResourceTypeSupport"
+      },
+      "title": "Supported Resource Types",
+      "type": "array"
+    },
+    "supports_topology": {
+      "default": false,
+      "title": "Supports Topology",
+      "type": "boolean"
+    },
+    "supports_diagnostics": {
+      "default": false,
+      "title": "Supports Diagnostics",
+      "type": "boolean"
+    },
+    "supports_observability": {
+      "default": false,
+      "title": "Supports Observability",
+      "type": "boolean"
+    },
+    "generated_at": {
+      "title": "Generated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "provider",
+    "adapter_package",
+    "adapter_version",
+    "contract_version",
+    "min_supported_contract_version",
+    "urn_grammar_version",
+    "generated_at"
+  ],
+  "title": "ProviderCapabilityManifest",
+  "type": "object"
+}

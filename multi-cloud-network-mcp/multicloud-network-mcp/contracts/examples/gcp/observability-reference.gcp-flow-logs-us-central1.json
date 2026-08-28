@@ -1,0 +1,33 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:observability-reference:projects/acme-prod-networking-123456/locations/global/vpcFlowLogsConfigs/prod-shared-vpc-us-central1-flow-logs",
+  "native_id": "projects/acme-prod-networking-123456/locations/global/vpcFlowLogsConfigs/prod-shared-vpc-us-central1-flow-logs",
+  "resource_type": "observability-reference",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "prod-shared-vpc-us-central1-flow-logs",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "VpcFlowLogsServiceClient.list_vpc_flow_logs_configs",
+  "collection_completeness": "complete",
+  "observability_type": "flow-log",
+  "target_resource_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:subnet:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+  "enabled": true,
+  "destination": "Cloud Logging: compute.googleapis.com/vpc_flows",
+  "state": "enabled",
+  "extensions": {
+    "gcp": {
+      "target_type": "SUBNET",
+      "target_resource": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-us-central1",
+      "aggregation_interval": "INTERVAL_5_SEC",
+      "flow_sampling": 0.5,
+      "filter_expr": null,
+      "description": "Flow logs config for prod-shared-vpc-us-central1",
+      "cross_project_metadata": "CROSS_PROJECT_METADATA_ENABLED",
+      "_note": "This is a Network Management API VpcFlowLogsConfig resource (locations/global in its own API surface, even though its target_resource is a regional subnetwork -- hence scope.region is omitted here while target_resource_urn still carries the target subnet's own region). This VpcFlowLogsConfig is a DIFFERENT mechanism than subnet.gcp-shared-vpc-us-central1.json's own extensions.gcp.enable_flow_logs=true field (the Subnetwork resource's own built-in flow-log toggle) -- both can independently exist for the same subnet; this example represents the separate, more configurable Network Management API config. Per resources.py::ObservabilityReference's own docstring, this record and every conformant adapter populating it carries configuration/delivery metadata only -- never actual log record contents."
+    }
+  }
+}

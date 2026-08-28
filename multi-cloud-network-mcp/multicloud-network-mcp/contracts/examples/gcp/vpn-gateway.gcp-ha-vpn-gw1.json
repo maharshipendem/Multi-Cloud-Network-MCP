@@ -1,0 +1,33 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:vpn-gateway:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/vpnGateways/acme-ha-vpn-gw1",
+  "resource_type": "vpn-gateway",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "region": "us-central1",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "acme-ha-vpn-gw1",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "VpnGatewaysClient.list",
+  "collection_completeness": "complete",
+  "network_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "asn": null,
+  "is_ha": true,
+  "interface_ip_addresses": ["34.72.100.10", "34.72.100.11"],
+  "state": "available",
+  "extensions": {
+    "gcp": {
+      "stack_type": "IPV4_ONLY",
+      "gateway_ip_version": "IPV4",
+      "interfaces": [
+        {"id": 0, "ip_address": "34.72.100.10", "interconnect_attachment": null},
+        {"id": 1, "ip_address": "34.72.100.11", "interconnect_attachment": null}
+      ],
+      "_note": "is_ha=true is a LOSSLESS mapping, not an inference (unlike the AWS VpnGateway example): every GCP VpnGatewaysClient resource is an HA VPN gateway by construction -- Classic VPN uses a completely distinct TargetVpnGateway resource, out of this milestone's scope (see gcp_network_mcp.models.vpn's module docstring). asn is null: an HA VPN gateway carries no ASN of its own in GCP's model -- the ASN lives on the associated Cloud Router (Router.bgp.asn), and Cloud Router has no canonical resource type in this contract (see NOTES.md), so there is no lossless source to populate this field from. GCP's own VpnGateway model (gcp_network_mcp.models.vpn.VpnGateway) also carries no 'state' field at all -- canonical state='available' above is inferred the same way network.gcp-prod-shared-vpc.json's is: any resource the list/get call successfully returned is presumed available, not read from a native field."
+    }
+  }
+}

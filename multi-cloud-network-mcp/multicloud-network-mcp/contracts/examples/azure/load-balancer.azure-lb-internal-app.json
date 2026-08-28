@@ -1,0 +1,39 @@
+{
+  "extensions": {
+    "azure": {
+      "sku_name": "Standard",
+      "sku_tier": "Regional"
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:load-balancer:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/loadBalancers/lb-internal-app",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/loadBalancers/lb-internal-app",
+  "resource_type": "load-balancer",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "lb-internal-app",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "LoadBalancersOperations.list_all",
+  "collection_completeness": "complete",
+  "lb_type": "network",
+  "scheme": "internal",
+  "ip_addresses": [
+    "10.20.1.100"
+  ],
+  "network_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+  "listener_ports": [
+    443
+  ],
+  "state": "succeeded"
+}

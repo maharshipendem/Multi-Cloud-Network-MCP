@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.multicloud-network-mcp.dev/schemas/v1/transit-hub.schema.json",
+  "$comment": "GENERATED -- do not hand-edit. Produced by scripts/generate_schemas.py from multicloud_network_mcp.contracts.models.TransitHub (contract version 1.0.0). Edit the Pydantic model and re-run the script instead.",
+  "$defs": {
+    "CloudScope": {
+      "description": "Where a fact was observed: which provider, which tenancy\nboundary, which geography, and when. Every field beyond ``provider``\nand ``collected_at`` is optional because no single provider\npopulates all of them -- see the field-by-field mapping below and\n``docs/normalization.md``.\n\n- ``tenant_id``: Azure AD tenant. Rarely meaningful for AWS/GCP.\n- ``account_id``: AWS account ID (12 digits).\n- ``subscription_id``: Azure subscription GUID.\n- ``project_id``: GCP project ID.\n- ``resource_group``: Azure resource group -- kept as its own field\n  (not folded into ``extensions``) because Azure resource identity is\n  genuinely incomplete without it, unlike a merely-supplementary fact.\n- ``region``: AWS/GCP-style region (``us-east-1``/``us-central1``).\n- ``location``: Azure's own term for the same granularity (ARM\n  responses literally use the JSON field name ``location``, not\n  ``region``) -- kept as a separate field rather than aliased onto\n  ``region``, since forcing Azure's ``location`` string into a field\n  named ``region`` would misrepresent which provider vocabulary it\n  came from.\n- ``zone``: availability-zone-level granularity, when the provider\n  exposes it (AWS AZ, Azure zone number, GCP zone).\n- ``collected_at``: ISO 8601 UTC timestamp this scope's data was\n  observed at -- never a live/real-time value.",
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/Provider"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        },
+        "account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Account Id"
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subscription Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "resource_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Group"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zone"
+        },
+        "collected_at": {
+          "title": "Collected At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "collected_at"
+      ],
+      "title": "CloudScope",
+      "type": "object"
+    },
+    "Provider": {
+      "enum": [
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": "Provider",
+      "type": "string"
+    }
+  },
+  "description": "Unifies AWS ``TransitGateway``, Azure ``VirtualHub``, and GCP\nNetwork Connectivity Center ``Hub``.\n\nSemantic gap: only Azure's ``VirtualHub`` carries its own address\nprefix (``cidr_blocks``). Neither an AWS Transit Gateway nor a GCP\nNCC Hub has CIDR space of its own -- both are pure routing/attachment\nfabrics with address space living entirely in the attached\nnetworks/spokes. ``cidr_blocks`` is therefore populated only for\nAzure and left empty for AWS/GCP, not defaulted from an attached\nnetwork's range (which would misrepresent the hub's own identity).",
+  "properties": {
+    "extensions": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "urn": {
+      "title": "Urn",
+      "type": "string"
+    },
+    "native_id": {
+      "title": "Native Id",
+      "type": "string"
+    },
+    "resource_type": {
+      "title": "Resource Type",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/Provider"
+    },
+    "scope": {
+      "$ref": "#/$defs/CloudScope"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "tags": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "object"
+    },
+    "observed_at": {
+      "title": "Observed At",
+      "type": "string"
+    },
+    "source_api": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Api"
+    },
+    "collection_completeness": {
+      "default": "complete",
+      "title": "Collection Completeness",
+      "type": "string"
+    },
+    "asn": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Asn"
+    },
+    "state": {
+      "title": "State",
+      "type": "string"
+    },
+    "route_table_urns": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Route Table Urns",
+      "type": "array"
+    },
+    "cidr_blocks": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Cidr Blocks",
+      "type": "array"
+    }
+  },
+  "required": [
+    "urn",
+    "native_id",
+    "resource_type",
+    "provider",
+    "scope",
+    "observed_at",
+    "state"
+  ],
+  "title": "TransitHub",
+  "type": "object"
+}

@@ -1,0 +1,36 @@
+{
+  "extensions": {
+    "aws": {
+      "aws_device": "EqDC2-0123456789abcdef0",
+      "has_logical_redundancy": "unknown"
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:interconnect:dxcon-fabcd234",
+  "native_id": "dxcon-fabcd234",
+  "resource_type": "interconnect",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-dx-conn-1",
+  "tags": {
+    "Name": "prod-dx-conn-1"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "directconnect:DescribeConnections",
+  "collection_completeness": "complete",
+  "interconnect_type": "dedicated",
+  "bandwidth": "10Gbps",
+  "location": "Equinix DC2 - Ashburn, VA",
+  "state": "available",
+  "redacted": true
+}

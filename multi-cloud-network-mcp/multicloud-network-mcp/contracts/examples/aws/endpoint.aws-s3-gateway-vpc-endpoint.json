@@ -1,0 +1,38 @@
+{
+  "extensions": {
+    "aws": {
+      "vpc_endpoint_type": "Gateway",
+      "route_table_ids": [
+        "rtb-0123456789abcdef0"
+      ],
+      "note": "subnet_urn is None: this is a Gateway-type VPC endpoint, which attaches to route tables, not subnets, unlike an Interface-type endpoint."
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:endpoint:vpce-0123456789abcdef0",
+  "native_id": "vpce-0123456789abcdef0",
+  "resource_type": "endpoint",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeVpcEndpoints",
+  "collection_completeness": "complete",
+  "endpoint_type": "consumer",
+  "service_name": "com.amazonaws.us-east-1.s3",
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "subnet_urn": null,
+  "private_ip_addresses": [],
+  "state": "available"
+}

@@ -1,0 +1,45 @@
+{
+  "extensions": {
+    "aws": {
+      "load_balancer_name": "prod-web-alb",
+      "dns_name": "prod-web-alb-0123456789.us-east-1.elb.amazonaws.com",
+      "raw_scheme": "internet-facing",
+      "ip_address_type": "ipv4",
+      "security_group_ids": [
+        "sg-0abc123def456789"
+      ]
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:load-balancer:arn%3Aaws%3Aelasticloadbalancing%3Aus-east-1%3A123456789012%3Aloadbalancer/app/prod-web-alb/0123456789abcdef",
+  "native_id": "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/prod-web-alb/0123456789abcdef",
+  "resource_type": "load-balancer",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "prod-web-alb",
+  "tags": {
+    "Name": "prod-web-alb"
+  },
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "elbv2:DescribeLoadBalancers",
+  "collection_completeness": "complete",
+  "lb_type": "application",
+  "scheme": "external",
+  "ip_addresses": [],
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "listener_ports": [
+    80,
+    443
+  ],
+  "state": "active"
+}

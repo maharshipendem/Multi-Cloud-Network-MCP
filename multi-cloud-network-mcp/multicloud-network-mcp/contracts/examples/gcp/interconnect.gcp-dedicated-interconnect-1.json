@@ -1,0 +1,40 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:interconnect:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/interconnects/acme-dedicated-interconnect-1",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/interconnects/acme-dedicated-interconnect-1",
+  "resource_type": "interconnect",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "acme-dedicated-interconnect-1",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "InterconnectsClient.list",
+  "collection_completeness": "complete",
+  "interconnect_type": "dedicated",
+  "bandwidth": "10Gbps",
+  "location": "iad-zone1-1",
+  "state": "active",
+  "redacted": true,
+  "extensions": {
+    "gcp": {
+      "link_type": "LINK_TYPE_ETHERNET_10G_LR",
+      "customer_name": "Acme Corp",
+      "admin_enabled": true,
+      "operational_status": "OS_ACTIVE",
+      "provisioned_link_count": 1,
+      "requested_link_count": 1,
+      "google_ip_address": "169.254.66.1",
+      "peer_ip_address": "169.254.66.2",
+      "circuit_infos": [
+        {"google_circuit_id": "G-ACME-0001", "google_demarc_id": "DEMARC-0001", "customer_demarc_id": null}
+      ],
+      "interconnect_attachment_self_links": [
+        "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/interconnectAttachments/acme-dedicated-va-us-central1"
+      ],
+      "_note": "interconnect_type='dedicated' and bandwidth='10Gbps' (derived from link_type=LINK_TYPE_ETHERNET_10G_LR, per resources.py::Interconnect's docstring: bandwidth is deliberately free-text since providers report it in genuinely different units). location is the colocation-facility name only, not a full InterconnectLocation self_link -- InterconnectLocation is not one of this contract's 21 canonical resource types (it's static metadata about a facility, not a per-customer resource), so its richer detail (city, address, facility_provider) stays uncaptured here rather than inventing a 22nd resource type. redacted=true is permanent, matching this resource's Partner-Interconnect-adjacent InterconnectAttachment sibling."
+    }
+  }
+}

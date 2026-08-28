@@ -1,0 +1,39 @@
+{
+  "urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,region=us-central1:endpoint:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/serviceAttachments/prod-app-service-attachment",
+  "native_id": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/serviceAttachments/prod-app-service-attachment",
+  "resource_type": "endpoint",
+  "provider": "gcp",
+  "scope": {
+    "provider": "gcp",
+    "project_id": "acme-prod-networking-123456",
+    "region": "us-central1",
+    "collected_at": "2026-08-20T12:00:00Z"
+  },
+  "name": "prod-app-service-attachment",
+  "tags": {},
+  "observed_at": "2026-08-20T12:00:00Z",
+  "source_api": "ServiceAttachmentsClient.list",
+  "collection_completeness": "complete",
+  "endpoint_type": "producer",
+  "service_name": "prod-app-service-attachment.us-central1.acme-prod-networking-123456.p.googleusercontent.com",
+  "network_urn": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:network:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/networks/prod-shared-vpc",
+  "subnet_urn": null,
+  "private_ip_addresses": [],
+  "state": "accepting-connections",
+  "extensions": {
+    "gcp": {
+      "target_service": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/prod-app-ilb-fr",
+      "connection_preference": "ACCEPT_MANUAL",
+      "producer_forwarding_rule": "https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/forwardingRules/prod-app-ilb-fr",
+      "nat_subnet_self_links": ["https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/regions/us-central1/subnetworks/prod-shared-vpc-psc-nat"],
+      "enable_proxy_protocol": false,
+      "consumer_accept_lists": [
+        {"project_id_or_num": "acme-partner-services-654321", "connection_limit": 5, "network_url": "https://www.googleapis.com/compute/v1/projects/acme-partner-services-654321/global/networks/partner-vpc"}
+      ],
+      "consumer_reject_lists": [],
+      "connected_endpoints": [],
+      "domain_names": ["prod-app.acme-example.com."],
+      "_note": "Unlike AWS (which has no distinct producer-side resource -- see aws NOTES.md), GCP's ServiceAttachment IS a first-class producer-side resource with its own self_link, so this is a direct, lossless mapping rather than a synthesis (contrast with endpoint.gcp-psc-to-partner-api.json's consumer-side ForwardingRule-based synthesis). subnet_urn is null: a ServiceAttachment references a NAT subnet pool (nat_subnet_self_links), not a single subnet a single consumer-facing IP lives in -- that's a materially different relationship than NetworkInterface.subnet_urn/PscEndpoint's own subnetwork_self_link, so it is preserved only in extensions.gcp.nat_subnet_self_links rather than forced into subnet_urn. target_service points at the same forwarding rule as load-balancer.gcp-prod-app-ilb.json -- this service attachment publishes that internal load balancer to the explicitly accept-listed consumer project acme-partner-services-654321."
+    }
+  }
+}

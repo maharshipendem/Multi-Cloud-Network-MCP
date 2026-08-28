@@ -1,0 +1,33 @@
+{
+  "$comment": "GENERATED -- do not hand-edit. Maps resource/model name to schema file.",
+  "contract_version": "1.0.0",
+  "schemas": {
+    "network": "network.schema.json",
+    "subnet": "subnet.schema.json",
+    "network-interface": "network-interface.schema.json",
+    "address": "address.schema.json",
+    "route-table": "route-table.schema.json",
+    "route": "route.schema.json",
+    "firewall-rule": "firewall-rule.schema.json",
+    "gateway": "gateway.schema.json",
+    "transit-hub": "transit-hub.schema.json",
+    "attachment": "attachment.schema.json",
+    "peering": "peering.schema.json",
+    "vpn-gateway": "vpn-gateway.schema.json",
+    "vpn-tunnel": "vpn-tunnel.schema.json",
+    "interconnect": "interconnect.schema.json",
+    "interconnect-attachment": "interconnect-attachment.schema.json",
+    "dns-zone": "dns-zone.schema.json",
+    "dns-resolver": "dns-resolver.schema.json",
+    "dns-rule": "dns-rule.schema.json",
+    "load-balancer": "load-balancer.schema.json",
+    "endpoint": "endpoint.schema.json",
+    "observability-reference": "observability-reference.schema.json",
+    "topology-graph": "topology-graph.schema.json",
+    "finding": "finding.schema.json",
+    "path-explanation": "path-explanation.schema.json",
+    "response-envelope": "response-envelope.schema.json",
+    "collection-warning": "collection-warning.schema.json",
+    "provider-capability-manifest": "provider-capability-manifest.schema.json"
+  }
+}

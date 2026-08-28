@@ -1,0 +1,66 @@
+{
+  "provider": "gcp",
+  "source": "35.235.240.5",
+  "destination": "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,zone=us-central1-a:network-interface:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/zones/us-central1-a/instances/app-server-1/networkInterfaces/nic0",
+  "protocol": "tcp",
+  "port": 22,
+  "overall_verdict": "partially_evaluated",
+  "findings": [
+    {
+      "rule_id": "gcp.path.firewall-evaluation",
+      "rule_version": "1.0.0",
+      "provider": "gcp",
+      "severity": "info",
+      "confidence": "high",
+      "summary": "Firewall rule allow-ssh-from-iap (priority 1000, explicit ALLOW) permits inbound tcp/22 from 35.235.240.0/20, which contains source 35.235.240.5, targeting instances tagged ssh-allowed, including app-server-1's nic0. This explicit rule outranks GCP's implied deny-ingress default rule (priority 65534).",
+      "affected_resources": [
+        "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456:firewall-rule:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/firewalls/allow-ssh-from-iap",
+        "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,zone=us-central1-a:network-interface:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/zones/us-central1-a/instances/app-server-1/networkInterfaces/nic0"
+      ],
+      "evidence": [
+        {
+          "source": "firewall_rule:https://www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/global/firewalls/allow-ssh-from-iap",
+          "detail": "direction=INGRESS, action=ALLOW, priority=1000, sourceRanges=[35.235.240.0/20], allowed=[{IPProtocol:tcp,ports:[22]}], targetTags=[ssh-allowed]"
+        }
+      ],
+      "reasoning": [
+        {
+          "step": 1,
+          "description": "35.235.240.5 is contained within source range 35.235.240.0/20, permitted by allow-ssh-from-iap.",
+          "evidence_indices": [0]
+        },
+        {
+          "step": 2,
+          "description": "allow-ssh-from-iap's priority 1000 is numerically lower (higher precedence) than GCP's implied deny-ingress default rule at priority 65534, so the explicit ALLOW wins for this traffic.",
+          "evidence_indices": [0]
+        }
+      ],
+      "assumptions": [
+        "app-server-1 carries the ssh-allowed network tag targeted by this rule."
+      ],
+      "limitations": [],
+      "freshness": "2026-08-20T12:00:00Z",
+      "remediation": null
+    },
+    {
+      "rule_id": "gcp.path.iap-tunnel-authorization",
+      "rule_version": "1.0.0",
+      "provider": "gcp",
+      "severity": "info",
+      "confidence": "indeterminate",
+      "summary": "Traffic sourced from the IAP range additionally requires the connecting principal to hold the roles/iam.tunnelResourceAccessor IAM binding (or equivalent) and to pass Identity-Aware Proxy's own per-request TCP-forwarding authorization; this collection has no IAM policy binding data in scope to evaluate that layer, so whether a specific caller can actually open the tunnel cannot be determined here.",
+      "affected_resources": [
+        "urn:mcnet:v1:gcp:project_id=acme-prod-networking-123456,zone=us-central1-a:network-interface:https%3A//www.googleapis.com/compute/v1/projects/acme-prod-networking-123456/zones/us-central1-a/instances/app-server-1/networkInterfaces/nic0"
+      ],
+      "evidence": [],
+      "reasoning": [],
+      "assumptions": [],
+      "limitations": [
+        "IAM policy bindings for roles/iam.tunnelResourceAccessor were not collected as part of this path evaluation; this finding cannot confirm whether the specific calling principal is authorized to open an IAP TCP-forwarding tunnel to this instance, only that the VPC firewall layer permits the traffic once IAP has forwarded it."
+      ],
+      "freshness": "2026-08-20T12:00:00Z",
+      "remediation": null
+    }
+  ],
+  "freshness": "2026-08-20T12:00:00Z"
+}

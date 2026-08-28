@@ -1,0 +1,36 @@
+{
+  "extensions": {
+    "azure": {
+      "sku": "Standard",
+      "routing_state": "Provisioned",
+      "hub_routing_preference": "ExpressRoute"
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:transit-hub:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualHubs/vhub-eastus",
+  "resource_type": "transit-hub",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "vhub-eastus",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "VirtualHubsOperations.list_by_resource_group",
+  "collection_completeness": "complete",
+  "asn": 65515,
+  "state": "succeeded",
+  "route_table_urns": [],
+  "cidr_blocks": [
+    "10.100.0.0/24"
+  ]
+}

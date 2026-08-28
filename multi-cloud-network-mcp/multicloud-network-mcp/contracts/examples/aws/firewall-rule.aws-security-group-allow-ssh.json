@@ -1,0 +1,44 @@
+{
+  "extensions": {
+    "aws": {
+      "security_group_id": "sg-0abc123def456789",
+      "is_egress": false,
+      "description": "Allow SSH from anywhere (flagged by finding.aws-exposed-ssh-security-group)"
+    }
+  },
+  "urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:firewall-rule:sgr-0123456789abcdef0",
+  "native_id": "sgr-0123456789abcdef0",
+  "resource_type": "firewall-rule",
+  "provider": "aws",
+  "scope": {
+    "provider": "aws",
+    "tenant_id": null,
+    "account_id": "123456789012",
+    "subscription_id": null,
+    "project_id": null,
+    "resource_group": null,
+    "region": "us-east-1",
+    "location": null,
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": null,
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "ec2:DescribeSecurityGroupRules",
+  "collection_completeness": "complete",
+  "direction": "ingress",
+  "action": "allow",
+  "protocol": "tcp",
+  "port_range": "22",
+  "source_ranges": [
+    "0.0.0.0/0"
+  ],
+  "destination_ranges": [],
+  "priority": null,
+  "stateful": true,
+  "network_urn": "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network:vpc-0abc123def456789",
+  "associated_resource_urns": [
+    "urn:mcnet:v1:aws:account_id=123456789012,region=us-east-1:network-interface:eni-0123456789abcdef0"
+  ]
+}

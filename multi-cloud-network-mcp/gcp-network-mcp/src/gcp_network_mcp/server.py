@@ -19,6 +19,7 @@ from gcp_network_mcp.tools import (
     bgp,
     connectivity_center,
     connectivity_tests,
+    contracts,
     diagnostics,
     dns,
     firewall,
@@ -80,6 +81,10 @@ def build_server(settings: Settings | None = None) -> MCPServer:
     connectivity_tests.register(mcp, client_factory, resource_context)
     observability.register(mcp, client_factory, resource_context, settings)
     diagnostics.register(mcp, client_factory, resource_context, settings)
+
+    # Milestone 9: multicloud-network-mcp contract adapter surface (no
+    # runtime dependency on that package -- see tools/contracts.py).
+    contracts.register(mcp, client_factory, resource_context)
 
     _logger.info(
         "server initialized",

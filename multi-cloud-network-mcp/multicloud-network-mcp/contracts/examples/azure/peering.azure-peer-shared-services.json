@@ -1,0 +1,37 @@
+{
+  "extensions": {
+    "azure": {
+      "peering_sync_level": "FullyInSync",
+      "use_remote_gateways": false
+    }
+  },
+  "urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:peering:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus/virtualNetworkPeerings/peer-to-shared-services",
+  "native_id": "/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus/virtualNetworkPeerings/peer-to-shared-services",
+  "resource_type": "peering",
+  "provider": "azure",
+  "scope": {
+    "provider": "azure",
+    "tenant_id": null,
+    "account_id": null,
+    "subscription_id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+    "project_id": null,
+    "resource_group": "rg-networking",
+    "region": null,
+    "location": "eastus",
+    "zone": null,
+    "collected_at": "2026-08-28T12:00:00Z"
+  },
+  "name": "peer-to-shared-services",
+  "tags": {},
+  "observed_at": "2026-08-28T12:00:00Z",
+  "source_api": "VirtualNetworkPeeringsOperations.list",
+  "collection_completeness": "complete",
+  "local_network_urn": "urn:mcnet:v1:azure:subscription_id=a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d,location=eastus,resource_group=rg-networking:network:/subscriptions/a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d/resourceGroups/rg-networking/providers/Microsoft.Network/virtualNetworks/vnet-app-eastus",
+  "remote_network_urn": null,
+  "remote_native_id": "/subscriptions/99999999-8888-4777-9666-555555555555/resourceGroups/rg-shared-services/providers/Microsoft.Network/virtualNetworks/vnet-shared-services",
+  "state": "connected",
+  "allow_forwarded_traffic": true,
+  "exchange_subnet_routes": false,
+  "import_custom_routes": false,
+  "export_custom_routes": false
+}
